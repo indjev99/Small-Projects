@@ -114,4 +114,5 @@ int main()
             s=rand()%50;
         }
     }
+    return 0;
 }
