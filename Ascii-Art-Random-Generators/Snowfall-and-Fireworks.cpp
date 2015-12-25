@@ -539,6 +539,7 @@ void output_all()
 double shs[1024];
 void smooth_snow_height()
 {
+    int currminsh=h;
     char f=1;
     shs[0]=sh[0]*1.5+sh[1]*0.5;
     shs[w-1]=sh[w-1]*1.5+sh[w-2]*0.5;
@@ -549,8 +550,10 @@ void smooth_snow_height()
     for (int i=0;i<w;++i)
     {
         sh[i]=shs[i]/2;
+        if (round(sh[i])<currminsh) currminsh=round(sh[i]);
         if (round(sh[i])<h) f=0;
     }
+    if (currminsh<minsh) minsh=currminsh;
     if (f)
     {
         minsh=0;
