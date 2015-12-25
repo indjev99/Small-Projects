@@ -408,7 +408,7 @@ void output_snowflakes_all()
     for (int i=0;i<sfs.size();++i)
     {
         f=sfs[i];
-        if (round(f.y)>=0 &&  round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y)) output_snowflakes[int(round(f.y))][int(round(f.x))]=f.c;
+        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y)) output_snowflakes[int(round(f.y))][int(round(f.x))]=f.c;
     }
 }
 void output_fireworks_all()
@@ -427,7 +427,7 @@ void output_fireworks_all()
     for (int i=0;i<fws.size();++i)
     {
         f=fws[i];
-        if (round(f.y)>=0 && round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y))
+        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y))
         {
             output_fireworks[int(round(f.y))][int(round(f.x))]=char_for_direction(f);
             output_colour[int(round(f.y))][int(round(f.x))]=f.c;
@@ -527,7 +527,7 @@ void output_all()
     SetConsoleTextAttribute(hConsole,background_colour);
     output_fireworks_all();
     output_snowflakes_all();
-    for (int i=0;i<h-currminsh;++i)
+    for (int i=0;i<h-currminsh && i<h;++i)
     {
         output_snow_row(i);
         output_art_row(i);
