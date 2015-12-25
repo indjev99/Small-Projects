@@ -14,29 +14,34 @@ struct object
     char c;
     int l;
 };
+vector<object> fws; //fireworks
+vector<object> sfs; //snowflakes
+
+int w; //width
+int h; //height
+
+double sps; //seconds per step
+char cover; //do the snow and fireworks cover the ascii art 0/1
 string snowflakes; //all possible snowflakes
-vector<string> art; //ascii art
+char ahc; //horizontal centering
 char background_colour; //snow colour
 char art_colour; //art colour
 vector<char> firework_colours; //firework colours
 char es; //empty symbol
-vector<object> fws; //fireworks
-vector<object> sfs; //snowflakes
-char cover; //do the snow and fireworks cover the ascii art 0/1
-int sa; //snow accumulation 0/1
-int w; //width
-int h; //height
-int ps1; //probability of a snowflake appearing is ps1/ps2
-int ps2;
-int pf1; //probability of a firework appearing is ps1/ps2
-int pf2;
-int s; //seed
-double sps; //seconds per step
+vector<string> art; //ascii art
+
+char sa; //snow accumulation 0/1
 double sfsize; //size of snowflakes
 double ar; //air resistance
 double g; //gravity
 double wind; //wind
-char ahc; //horizontal centering
+
+int s; //seed
+int ps1; //probability of a snowflake appearing is ps1/ps2
+int ps2;
+int pf1; //probability of a firework appearing is ps1/ps2
+int pf2;
+
 double sh[1024]; //snow hight
 HANDLE hConsole=GetStdHandle(STD_OUTPUT_HANDLE); //console handle
 COORD CursorPosition; //cursor position
@@ -60,9 +65,9 @@ void move_cursor(int line, int character)
 }
 void basic_settings()
 {
-    cout<<"Enter width: ";
+    cout<<"Enter width (-1 for default): ";
     cin>>w;
-    cout<<"Enter height: ";
+    cout<<"Enter height (-1 for default): ";
     cin>>h;
 }
 void default_basic_settings()
@@ -73,36 +78,33 @@ void default_basic_settings()
     h=csbi.srWindow.Bottom-csbi.srWindow.Top;
 }
 char system_background;
-void advanced_graphics_settings()
+void colour_graphics_settings()
 {
-    int c,b;
-    cout<<"Enter the background colour (0-15): ";
-    cin>>b;
-    system_background=b;
-    b*=16;
-    cout<<"Enter the snow colour (0-15): ";
+    int c;
+    cout<<"Enter the background colour (0-15, -1 for default): ";
     cin>>c;
-    background_colour=c+b;
-    cout<<"Enter the art colour (0-15): ";
+    system_background=c;
+    cout<<"Enter the snow colour (0-15, -1 for default): ";
     cin>>c;
-    art_colour=c+b;
-    cout<<"Enter all firework colours (0-15) ending with -1: ";
+    background_colour=c;
+    cout<<"Enter the art colour (0-15, -1 for default): ";
+    cin>>c;
+    art_colour=c;
+    cout<<"Enter all firework colours (0-15, only -1 for default) ending with -1: ";
     cin>>c;
     firework_colours.resize(0);
     while (c!=-1)
     {
-        firework_colours.push_back(c+b);
+        firework_colours.push_back(c);
         cin>>c;
     }
 }
-void default_advanced_graphics_settings()
+void default_colour_graphics_settings()
 {
-    char b=3;
-    system_background=b;
-    b*=16;
-    background_colour=15+b;
-    art_colour=4+b;
-    firework_colours={9+b,10+b,11+b,12+b,13+b,14+b};
+    system_background=3;
+    background_colour=15;
+    art_colour=4;
+    firework_colours={9,10,11,12,13,14};
 }
 void art_settings()
 {
@@ -148,18 +150,21 @@ void default_art_settings()
 void graphics_settings()
 {
     int c;
-    cout<<"Enter the number of second per step (double): ";
+    cout<<"Enter the number of second per step (double, -1 for default): ";
     cin>>sps;
-    cout<<"Enter all possible snowflakes: ";
-    cin>>snowflakes;
-    cout<<"Enter 1 if you want the snow to cover the art and 0 if you don't: ";
-    cin>>cover;
-    cout<<"Enter 1 if you want the art horizontally centered and 0 if you don't: ";
-    cin>>ahc;
-    cout<<"Enter 1 if you want to edit the advanced graphics settings and 0 if you don't: ";
+    cout<<"Enter all possible snowflakes (leave empty for default): ";
+    cin.ignore(1);
+    getline(cin,snowflakes);
+    cout<<"Enter 1 if you want the snow to cover the art and 0 if you don't (-1 for default): ";
     cin>>c;
-    if (c) advanced_graphics_settings();
-    else default_advanced_graphics_settings();
+    cover=c;
+    cout<<"Enter 1 if you want the art horizontally centered and 0 if you don't (-1 for default): ";
+    cin>>c;
+    ahc=c;
+    cout<<"Enter 1 if you want to edit the colour settings and 0 if you don't: ";
+    cin>>c;
+    if (c) colour_graphics_settings();
+    else default_colour_graphics_settings();
     cout<<"Enter 1 if you want to edit the ascii art and 0 if you don't: ";
     cin>>c;
     if (c) art_settings();
@@ -171,20 +176,22 @@ void default_graphics_settings()
     snowflakes="*";
     cover=1;
     ahc=1;
-    default_advanced_graphics_settings();
+    default_colour_graphics_settings();
     default_art_settings();
 }
 void physics_settings()
 {
-    cout<<"Enter 1 for snow accumulation and 0 for no snow accumulation: ";
-    cin>>sa;
-    cout<<"Enter the size of the snowflakes (double): ";
+    int c;
+    cout<<"Enter 1 for snow accumulation and 0 for no snow accumulation (-1 for default): ";
+    cin>>c;
+    sa=c;
+    cout<<"Enter the size of the snowflakes (double >=0, -1 for default): ";
     cin>>sfsize;
-    cout<<"Enter the air resistance (double 0-1): ";
+    cout<<"Enter the air resistance (double 0-1, -1 for default): ";
     cin>>ar;
-    cout<<"Enter the gravity (double): ";
+    cout<<"Enter the gravity (double, -1 for default): ";
     cin>>g;
-    cout<<"Enter the wind (double): ";
+    cout<<"Enter the wind (double, -1 for default): ";
     cin>>wind;
 }
 void default_physics_settings()
@@ -202,9 +209,9 @@ void probability_settings(char f)
         cout<<"Enter seed: ";
         cin>>s;
     }
-    cout<<"Enter probability of snowflake appearing (two numbers a and b the probability is a/b): ";
+    cout<<"Enter probability of snowflake appearing (two numbers a and b the probability is a/b, -1 -1 for default): ";
     cin>>ps1>>ps2;
-    cout<<"Enter probability of firework appearing (two numbers a and b the probability is a/b): ";
+    cout<<"Enter probability of firework appearing (two numbers a and b the probability is a/b, -1 -1 for default): ";
     cin>>pf1>>pf2;
 }
 void default_probability_settings(char f)
@@ -214,6 +221,39 @@ void default_probability_settings(char f)
     ps2=15;
     pf1=1;
     pf2=2;
+}
+void correct_settings()
+{
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
+    if (w==-1) w=csbi.srWindow.Right-csbi.srWindow.Left;
+    if (h==-1) h=csbi.srWindow.Bottom-csbi.srWindow.Top;
+
+    if (sps==-1) sps=0.15;
+    if (snowflakes.empty()) snowflakes="*";
+    if (cover==-1) cover=1;
+    if (ahc==-1) ahc=1;
+
+    char b=3;
+    if (system_background==-1) system_background=b;
+    b=system_background*16;
+    if (background_colour==-1) background_colour=15;
+    if (art_colour==-1) art_colour=4;
+    if (firework_colours.empty()) firework_colours={9,10,11,12,13,14};
+    background_colour+=b;
+    art_colour+=b;
+    for (int i=0;i<firework_colours.size();++i) firework_colours[i]+=b;
+
+    if (sa==-1) sa=1;
+    if (sfsize==-1) sfsize=0.6;
+    if (ar==-1) ar=0.2;
+    if (g==-1) g=0.2;
+    if (wind==-1) wind=0.02;
+
+    if (ps1==-1) ps1=1;
+    if (ps2==-1) ps2=15;
+    if (pf1==-1) pf1=1;
+    if (pf2==-1) pf2=2;
 }
 int minsh; //minimal snow height
 void start(char f)
@@ -235,13 +275,14 @@ void start(char f)
     cin>>c;
     if (c) probability_settings(f);
     else default_probability_settings(f);
+    correct_settings();
     cout<<"Press 'p' at any time to pause the snowfall, press 'e' at any time to exit the snowfall. Press any key to continue."<<endl;
     getch();
     cout.flush();
     set_system_background(system_background);
     system("cls");
     if (f) srand(s);
-    for (int i=0;i<w;++i)
+    if (f) for (int i=0;i<w;++i)
     {
         sh[i]=1;
     }
