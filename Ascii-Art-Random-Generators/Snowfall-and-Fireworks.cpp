@@ -256,6 +256,13 @@ void correct_settings()
     if (pf2==-1) pf2=2;
 }
 int minsh; //minimal snow height
+void clear_snow()
+{
+    for (int i=0;i<3*w;++i)
+    {
+        sh[i]=1;
+    }
+}
 void start(char f)
 {
     int c=0;
@@ -282,10 +289,7 @@ void start(char f)
     set_system_background(system_background);
     system("cls");
     if (f) srand(s);
-    if (f) for (int i=0;i<w;++i)
-    {
-        sh[i]=1;
-    }
+    if (f) clear_snow();
     minsh=0;
 }
 void generate_snowflake()
@@ -341,14 +345,22 @@ void simulate_objects()
         f=sfs[i];
         f.x+=f.xs;
         f.y+=f.ys;
-        if (round(f.x)>=0 && round(f.x)<w && h-sh[int(round(f.x))]<=round(f.y))
+        if (round(f.y)<-h)
         {
-            if (sa) sh[int(round(f.x))]+=sfsize;
             sfs.erase(sfs.begin()+i);
             continue;
         }
-        if ((round(f.x)<0 && h-sh[0]<=round(f.y)) || (round(f.x)>=w && h-sh[w-1]<=round(f.y)) || round(f.x)<-w || round(f.x)>=w*2 || round(f.y)<-h)
+        if (round(f.x)<-w)
         {
+            f.x+=3*w;
+        }
+        if (round(f.x)>=w*2)
+        {
+            f.x-=3*w;
+        }
+        if (round(f.x)>=-w && round(f.x)<2*w && h-sh[(int(round(f.x))+3*w)%(3*w)]<=round(f.y))
+        {
+            if (sa) sh[(int(round(f.x))+3*w)%(3*w)]+=sfsize;
             sfs.erase(sfs.begin()+i);
             continue;
         }
@@ -364,7 +376,15 @@ void simulate_objects()
         --f.l;
         f.x+=f.xs;
         f.y+=f.ys;
-        if (f.l<=0 || (round(f.x)>=0 && round(f.x)<w && h-sh[int(round(f.x))]<=round(f.y)) || (round(f.x)<0 && h-sh[0]<=round(f.y)) || (round(f.x)>=w && h-sh[w-1]<=round(f.y)) || round(f.x)<-w || round(f.x)>=w*2 || round(f.y)<-h)
+        if (round(f.x)<-w)
+        {
+            f.x+=3*w;
+        }
+        if (round(f.x)>=w*2)
+        {
+            f.x-=3*w;
+        }
+        if (f.l<=0 || (round(f.x)>=-w && round(f.x)<2*w && h-sh[(int(round(f.x))+3*w)%(3*w)]<=round(f.y)) || round(f.y)<-h)
         {
             fws.erase(fws.begin()+i);
             continue;
@@ -408,7 +428,7 @@ void output_snowflakes_all()
     for (int i=0;i<sfs.size();++i)
     {
         f=sfs[i];
-        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y)) output_snowflakes[int(round(f.y))][int(round(f.x))]=f.c;
+        if (round(f.y)>=0 && round(f.y)<h && round(f.x)>=0 &&  round(f.x)<w && h-sh[int(round(f.x))]>round(f.y)) output_snowflakes[int(round(f.y))][int(round(f.x))]=f.c;
     }
 }
 void output_fireworks_all()
@@ -427,7 +447,7 @@ void output_fireworks_all()
     for (int i=0;i<fws.size();++i)
     {
         f=fws[i];
-        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)<w && round(f.x)>=0 && h-sh[int(round(f.x))]>round(f.y))
+        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)>=0 && round(f.x)<w && h-sh[int(round(f.x))]>round(f.y))
         {
             output_fireworks[int(round(f.y))][int(round(f.x))]=char_for_direction(f);
             output_colour[int(round(f.y))][int(round(f.x))]=f.c;
@@ -541,13 +561,13 @@ void smooth_snow_height()
 {
     int currminsh=h;
     char f=1;
-    shs[0]=sh[0]*1.5+sh[1]*0.5;
-    shs[w-1]=sh[w-1]*1.5+sh[w-2]*0.5;
-    for (int i=1;i<w-1;++i)
+    shs[0]=sh[3*w-1]*0.5+sh[0]*1+sh[1]*0.5;
+    shs[3*w-1]=sh[w-1]*1.5+sh[w-2]*0.5;
+    for (int i=1;i<3*w-1;++i)
     {
         shs[i]=sh[i-1]*0.5+sh[i]+sh[i+1]*0.5;
     }
-    for (int i=0;i<w;++i)
+    for (int i=0;i<3*w;++i)
     {
         sh[i]=shs[i]/2;
         if (round(sh[i])<currminsh) currminsh=round(sh[i]);
@@ -556,13 +576,10 @@ void smooth_snow_height()
     if (currminsh<minsh) minsh=currminsh;
     if (f)
     {
-        minsh=0;
         sfs.resize(0);
         fws.resize(0);
-        for (int i=0;i<w;++i)
-        {
-            sh[i]=1;
-        }
+        clear_snow();
+        minsh=0;
     }
 }
 void snowfall()
