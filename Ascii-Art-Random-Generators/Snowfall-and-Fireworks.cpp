@@ -188,10 +188,10 @@ void default_art_settings()
     art=dart;
     es=des;
 }
-void graphics_settings()
+void graphics_settings(int f)
 {
     int c;
-    cout<<"Enter the number of second per step (double, -1 for default): ";
+    cout<<"Enter the number of seconds per step (double, -1 for default): ";
     cin>>sps;
     cout<<"Enter all possible snowflakes (leave empty for default): ";
     cin.ignore(1);
@@ -203,11 +203,11 @@ void graphics_settings()
     cout<<"Enter 1 if you want to edit the colour settings and 0 if you don't: ";
     cin>>c;
     if (c) colour_graphics_settings();
-    else default_colour_graphics_settings();
+    else if (f) default_colour_graphics_settings();
     cout<<"Enter 1 if you want to edit the ascii art and 0 if you don't: ";
     cin>>c;
     if (c) art_settings();
-    else default_art_settings();
+    else if (f) default_art_settings();
 }
 void default_graphics_settings()
 {
@@ -259,6 +259,15 @@ void default_probability_settings(int f)
     pf1=dpf1;
     pf2=dpf2;
 }
+void undo_background_correction()
+{
+    int b=system_background*16;
+    snowflake_colour-=b;
+    if (fs) snow_colour/=17;
+    else snow_colour-=b;
+    art_colour-=b;
+    for (int i=0;i<firework_colours.size();++i) firework_colours[i]-=b;
+}
 void correct_settings()
 {
     CONSOLE_SCREEN_BUFFER_INFO csbi;
@@ -274,6 +283,7 @@ void correct_settings()
     if (system_background==-1) system_background=dsystem_background;
     if (snowflake_colour==-1) snowflake_colour=dsnowflake_colour;
     if (snow_colour==-1) snow_colour=dsnow_colour;
+    if (dfs==-1) fs=dfs;
     if (art_colour==-1) art_colour=dart_colour;
     if (firework_colours.empty()) firework_colours=dfirework_colours;
     int b=system_background*16;
@@ -308,19 +318,20 @@ void start(int f)
     cout<<"Enter 1 if you want to edit the basic settings and 0 if you don't: ";
     cin>>c;
     if (c) basic_settings();
-    else default_basic_settings();
+    else if (f) default_basic_settings();
     cout<<"Enter 1 if you want to edit the graphics settings and 0 if you don't: ";
     cin>>c;
-    if (c) graphics_settings();
-    else default_graphics_settings();
+    if (c) graphics_settings(f);
+    else if (f) default_graphics_settings();
+    else undo_background_correction();
     cout<<"Enter 1 if you want to edit the physics settings and 0 if you don't: ";
     cin>>c;
     if (c) physics_settings();
-    else default_physics_settings();
+    else if (f) default_physics_settings();
     cout<<"Enter 1 if you want to edit the probability settings and 0 if you don't: ";
     cin>>c;
     if (c) probability_settings(f);
-    else default_probability_settings(f);
+    else if (f) default_probability_settings(f);
     correct_settings();
     cout<<"Press 'p' at any time to pause the snowfall, press 'e' at any time to exit the snowfall. Press any key to continue."<<endl;
     getch();
