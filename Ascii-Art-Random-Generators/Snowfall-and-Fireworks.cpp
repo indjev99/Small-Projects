@@ -101,17 +101,14 @@ vector<object> sfs; //snowflakes
 double sh[1024]; //snow hight
 HANDLE hConsole=GetStdHandle(STD_OUTPUT_HANDLE); //console handle
 COORD CursorPosition; //cursor position
-string sb_colour; //system background colour
 void set_system_background(int bc)
 {
     int tc=7;
     if (bc>=7) tc=0;
     string cmd="color ";
-    sb_colour="";
-    if (bc<10) sb_colour+=bc+'0';
-    else sb_colour+=bc-10+'a';
-    sb_colour+=tc+'0';
-    cmd+=sb_colour;
+    if (bc<10) cmd+=bc+'0';
+    else cmd+=bc-10+'a';
+    cmd+=tc+'0';
     system(cmd.c_str());
 }
 void set_text_colour(int bc)
