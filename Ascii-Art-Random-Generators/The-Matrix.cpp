@@ -8,7 +8,7 @@ int main()
 {
     string def="color 0a",base="color ",n,dark="color 02";
     string word[]={"MATRIX", "GROUND", "FIRE", "WATER", "RANDOM", "EXPLOSION", "AIR", "EARTH", "SUN", "MOON", "STAR", "HUMAN", "SEA",
-     "OCEAN", "RIVER", "POND", "SOND", "LIGHT", "DARK", "CARD", "UNIVERSE", "GALAXY", "BAD", "GOOD", "EVIL"};
+     "OCEAN", "RIVER", "POND", "LIGHT", "DARK", "CARD", "UNIVERSE", "GALAXY", "BAD", "GOOD", "EVIL", "SONG", "MELODY"};
     int a,b=0,p=11,c,pp=10,p2=5000,d=0,dd=0,wp=1000,op=0,cc,s=1;
     system("color 0a");
     srand(time(NULL));
