@@ -138,6 +138,28 @@ void default_basic_settings()
     w=dw;
     h=dh;
 }
+void basic_graphics_settings()
+{
+    cout<<"Enter the number of seconds per step (double, -1 for default): ";
+    cin>>sps;
+    cout<<"Enter all possible snowflakes (leave empty for default): ";
+    cin.ignore(1);
+    getline(cin,snowflakes);
+    cout<<"Enter 1 if you want the snow to cover the art and 0 if you don't (-1 for default): ";
+    cin>>cover;
+    cout<<"Enter 1 if you want the art horizontally centered and 0 if you don't (-1 for default): ";
+    cin>>ahc;
+    cout<<"Enter 1 if you want the snow to take the whole rectangle and 0 if you don't (-1 for default): ";
+    cin>>fs;
+}
+void default_basic_graphics_settings()
+{
+    sps=dsps;
+    snowflakes=dsnowflakes;
+    cover=dcover;
+    ahc=dahc;
+    fs=dfs;
+}
 void colour_graphics_settings()
 {
     int fc;
@@ -146,8 +168,6 @@ void colour_graphics_settings()
     cout<<"Enter the snow colour (0-15, -1 for default): ";
     cin>>snowflake_colour;
     snow_colour=snowflake_colour;
-    cout<<"Enter 1 if you want the snow to take the whole rectangle and 0 if you don't (-1 for default): ";
-    cin>>fs;
     cout<<"Enter the art colour (0-15, -1 for default): ";
     cin>>art_colour;
     cout<<"Enter all firework colours (0-15, only -1 for default) ending with -1: ";
@@ -164,11 +184,10 @@ void default_colour_graphics_settings()
     system_background=dsystem_background;
     snowflake_colour=dsnowflake_colour;
     snow_colour=dsnow_colour;
-    fs=dfs;
     art_colour=dart_colour;
     firework_colours=dfirework_colours;
 }
-void art_settings()
+void art_graphics_settings()
 {
     string row;
     cout<<"Enter the empty symbol, this is a symbol that won't displayed and is used for alignment: ";
@@ -183,7 +202,7 @@ void art_settings()
         getline(cin,row);
     }
 }
-void default_art_settings()
+void default_art_graphics_settings()
 {
     art=dart;
     es=des;
@@ -191,32 +210,24 @@ void default_art_settings()
 void graphics_settings(int f)
 {
     int c;
-    cout<<"Enter the number of seconds per step (double, -1 for default): ";
-    cin>>sps;
-    cout<<"Enter all possible snowflakes (leave empty for default): ";
-    cin.ignore(1);
-    getline(cin,snowflakes);
-    cout<<"Enter 1 if you want the snow to cover the art and 0 if you don't (-1 for default): ";
-    cin>>cover;
-    cout<<"Enter 1 if you want the art horizontally centered and 0 if you don't (-1 for default): ";
-    cin>>ahc;
+    cout<<"Enter 1 if you want to edit the basic graphics settings and 0 if you don't: ";
+    cin>>c;
+    if (c) basic_graphics_settings();
+    else if (f) default_basic_graphics_settings();
     cout<<"Enter 1 if you want to edit the colour settings and 0 if you don't: ";
     cin>>c;
     if (c) colour_graphics_settings();
     else if (f) default_colour_graphics_settings();
     cout<<"Enter 1 if you want to edit the ascii art and 0 if you don't: ";
     cin>>c;
-    if (c) art_settings();
-    else if (f) default_art_settings();
+    if (c) art_graphics_settings();
+    else if (f) default_art_graphics_settings();
 }
 void default_graphics_settings()
 {
-    sps=dsps;
-    snowflakes=dsnowflakes;
-    cover=dcover;
-    ahc=dahc;
+    default_basic_graphics_settings();
     default_colour_graphics_settings();
-    default_art_settings();
+    default_art_graphics_settings();
 }
 void physics_settings()
 {
@@ -279,11 +290,11 @@ void correct_settings()
     if (snowflakes.empty()) snowflakes=dsnowflakes;
     if (cover==-1) cover=dcover;
     if (ahc==-1) ahc=dahc;
+    if (dfs==-1) fs=dfs;
 
     if (system_background==-1) system_background=dsystem_background;
     if (snowflake_colour==-1) snowflake_colour=dsnowflake_colour;
     if (snow_colour==-1) snow_colour=dsnow_colour;
-    if (dfs==-1) fs=dfs;
     if (art_colour==-1) art_colour=dart_colour;
     if (firework_colours.empty()) firework_colours=dfirework_colours;
     int b=system_background*16;
