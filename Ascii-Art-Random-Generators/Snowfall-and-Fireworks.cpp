@@ -11,26 +11,29 @@ using namespace std;
 struct object
 {
     double x,y,xs,ys;
-    char c;
+    int c;
     int l;
 };
-vector<object> fws; //fireworks
-vector<object> sfs; //snowflakes
+
+//parameters for the simulation
 
 int w; //width
 int h; //height
 
 double sps; //seconds per step
-char cover; //do the snow and fireworks cover the ascii art 0/1
+int cover; //do the snow and fireworks cover the ascii art 0/1
+int fs; //does the snow take the whole rectangle
 string snowflakes; //all possible snowflakes
-char ahc; //horizontal centering
-char background_colour; //snow colour
-char art_colour; //art colour
-vector<char> firework_colours; //firework colours
+int ahc; //horizontal centering
+int system_background; //system background colour
+int snowflake_colour; //snowflake colour
+int snow_colour; //snow- colour
+int art_colour; //art colour
+vector<int> firework_colours; //firework colours
 char es; //empty symbol
 vector<string> art; //ascii art
 
-char sa; //snow accumulation 0/1
+int sa; //snow accumulation 0/1
 double sfsize; //size of snowflakes
 double ar; //air resistance
 double g; //gravity
@@ -42,20 +45,80 @@ int ps2;
 int pf1; //probability of a firework appearing is ps1/ps2
 int pf2;
 
+//default values of the parameters
+
+int dw=-1;
+int dh=-1;
+
+double dsps=0.15;
+int dcover=1;
+int dfs=0;
+string dsnowflakes="*";
+int dahc=1;
+int dsystem_background=3;
+int dsnowflake_colour=15;
+int dsnow_colour=15;
+int dart_colour=4;
+vector<int> dfirework_colours={9,10,11,12,13,14};
+char des='L';
+vector<string> dart={"LLLLLLLLLLLLLLLLLLLLLLLLLL|LLLLLLLLLLLLLLLLLLLLLLLLL_...._LLLLLLLLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLLL\\  _  /LLLLLLLLLLLLLLLLLLLL.::o:::::.LLLLLLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLLL (\\o/) LLLLLLLLLLLLLLLLLLL.:::'''':o:.LLLLLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLL---  / \\  ---LLLLLLLLLLLLLLLL:o:_    _:::LLLLLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLLLLL>*<LLLLLLLLLLLLLLLLLLLLL`:}_>()<_{:'LLLLLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLLLL>0<@<LLLLLLLLLLLLLLLLL@LLLL`'//\\\\'`LLLL@LLLLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLLL>>>@<<*LLLLLLLLLLLLLL@L#LLLLL//  \\\\LLLLL#L@LLLLL",
+                     "LLLLLLLLLLLLLLLLLLLLLL>@>*<0<<<LLLLLLLLLLL__#_#____/'____'\\____#_#__LLL",
+                     "LLLLLLLLLLLLLLLLLLLLL>*>>@<<<@<<LLLLLLLLL[__________________________]LL",
+                     "LLLLLLLLLLLLLLLLLLLL>@>>0<<<*<<@<LLLLLLLLL|=_- .-/\\ /\\ /\\ /\\--. =_-|LLL",
+                     "LLLLLLLLLLLLLLLLLLL>*>>0<<@<<<@<<<LLLLLLLL|-_= | \\ \\\\ \\\\ \\\\ \\ |-_=-|LLL",
+                     "LLLLLLLLLLLLLLLLLL>@>>*<<@<>*<<0<*<LLLLLLL|_=-=| / // // // / |_=-_|LLL",
+                     "LLLL\\*/LLLLLLLLLL>0>>*<<@<>0><<*<@<<LLLLLL|=_- |`-'`-'`-'`-'  |=_=-|LLL",
+                     "___\\\\U//___LLLLL>*>>@><0<<*>>@><*<0<<LLLLL| =_-| o          o |_==_|LLL",
+                     "|\\\\ | | \\\\|LLLL>@>>0<*<<0>>@<<0<<<*<@<LLLL|=_- | !     (    ! |=-_=|LLL",
+                     "| \\\\| | _(UU)_ >((*))_>0><*<0><@<<<0<*<LL_|-,-=| !    ).    ! |-_-=|_LL",
+                     "|\\ \\| || / //||.*.*.*.|>>@<<*<<@>><0<<@</=-((=_| ! __(:')__ ! |=_==_-\\L",
+                     "|\\\\_|_|&&_// ||*.*.*.*|_\\\\db//__LLLLL(\\_/)-=))-|/^\\=^=^^=^=/^\\| _=-_-_\\",
+                     "\"\"\"\"|'.'.'.|~~|.*.*.*|     ____|_LLL=('.')=//LL ,------------. LLLLLLLL",
+                     "jgs |'.'.'.|   ^^^^^^|____|>>>>>>|LL( ~~~ )/LLL(((((((())))))))LLLLLLLL",
+                     "LLLL~~~~~~~~LLLLLLLLL'\"\"\"\"`------'LL`w---w`LLLLL`------------'LLLLLLLLL"};
+
+int dsa=1;
+double dsfsize=0.6;
+double dar=0.2;
+double dg=0.2;
+double dwind=0.02;
+
+int dps1=1;
+int dps2=15;
+int dpf1=1;
+int dpf2=2;
+
+
+
+vector<object> fws; //fireworks
+vector<object> sfs; //snowflakes
 double sh[1024]; //snow hight
 HANDLE hConsole=GetStdHandle(STD_OUTPUT_HANDLE); //console handle
 COORD CursorPosition; //cursor position
 string sb_colour; //system background colour
-void set_system_background(int b)
+void set_system_background(int bc)
 {
+    int tc=7;
+    if (bc>=7) tc=0;
     string cmd="color ";
     sb_colour="";
-    if (b<10) sb_colour+=b+'0';
-    else sb_colour+=b-10+'a';
-    sb_colour+='7';
+    if (bc<10) sb_colour+=bc+'0';
+    else sb_colour+=bc-10+'a';
+    sb_colour+=tc+'0';
     cmd+=sb_colour;
     system(cmd.c_str());
-
+}
+void set_text_colour(int bc)
+{
+    int tc=7;
+    if (bc>=7) tc=0;
+    SetConsoleTextAttribute(hConsole,bc*16+tc);
 }
 void move_cursor(int line, int character)
 {
@@ -72,39 +135,38 @@ void basic_settings()
 }
 void default_basic_settings()
 {
-    CONSOLE_SCREEN_BUFFER_INFO csbi;
-    GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE),&csbi);
-    w=csbi.srWindow.Right-csbi.srWindow.Left;
-    h=csbi.srWindow.Bottom-csbi.srWindow.Top;
+    w=dw;
+    h=dh;
 }
-char system_background;
 void colour_graphics_settings()
 {
-    int c;
+    int fc;
     cout<<"Enter the background colour (0-15, -1 for default): ";
-    cin>>c;
-    system_background=c;
+    cin>>system_background;
     cout<<"Enter the snow colour (0-15, -1 for default): ";
-    cin>>c;
-    background_colour=c;
+    cin>>snowflake_colour;
+    snow_colour=snowflake_colour;
+    cout<<"Enter 1 if you want the snow to take the whole rectangle and 0 if you don't (-1 for default): ";
+    cin>>fs;
     cout<<"Enter the art colour (0-15, -1 for default): ";
-    cin>>c;
-    art_colour=c;
+    cin>>art_colour;
     cout<<"Enter all firework colours (0-15, only -1 for default) ending with -1: ";
-    cin>>c;
+    cin>>fc;
     firework_colours.resize(0);
-    while (c!=-1)
+    while (fc!=-1)
     {
-        firework_colours.push_back(c);
-        cin>>c;
+        firework_colours.push_back(fc);
+        cin>>fc;
     }
 }
 void default_colour_graphics_settings()
 {
-    system_background=3;
-    background_colour=15;
-    art_colour=4;
-    firework_colours={9,10,11,12,13,14};
+    system_background=dsystem_background;
+    snowflake_colour=dsnowflake_colour;
+    snow_colour=dsnow_colour;
+    fs=dfs;
+    art_colour=dart_colour;
+    firework_colours=dfirework_colours;
 }
 void art_settings()
 {
@@ -123,29 +185,8 @@ void art_settings()
 }
 void default_art_settings()
 {
-    art.resize(0);
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLLLLL|LLLLLLLLLLLLLLLLLLLLLLLLL_...._LLLLLLLLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLL\\  _  /LLLLLLLLLLLLLLLLLLLL.::o:::::.LLLLLLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLL (\\o/) LLLLLLLLLLLLLLLLLLL.:::'''':o:.LLLLLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLL---  / \\  ---LLLLLLLLLLLLLLLL:o:_    _:::LLLLLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLLLL>*<LLLLLLLLLLLLLLLLLLLLL`:}_>()<_{:'LLLLLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLLL>0<@<LLLLLLLLLLLLLLLLL@LLLL`'//\\\\'`LLLL@LLLLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLLL>>>@<<*LLLLLLLLLLLLLL@L#LLLLL//  \\\\LLLLL#L@LLLLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLLL>@>*<0<<<LLLLLLLLLLL__#_#____/'____'\\____#_#__LLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLLL>*>>@<<<@<<LLLLLLLLL[__________________________]LL");
-    art.push_back("LLLLLLLLLLLLLLLLLLLL>@>>0<<<*<<@<LLLLLLLLL|=_- .-/\\ /\\ /\\ /\\--. =_-|LLL");
-    art.push_back("LLLLLLLLLLLLLLLLLLL>*>>0<<@<<<@<<<LLLLLLLL|-_= | \\ \\\\ \\\\ \\\\ \\ |-_=-|LLL");
-    art.push_back("LLLLLLLLLLLLLLLLLL>@>>*<<@<>*<<0<*<LLLLLLL|_=-=| / // // // / |_=-_|LLL");
-    art.push_back("LLLL\\*/LLLLLLLLLL>0>>*<<@<>0><<*<@<<LLLLLL|=_- |`-'`-'`-'`-'  |=_=-|LLL");
-    art.push_back("___\\\\U//___LLLLL>*>>@><0<<*>>@><*<0<<LLLLL| =_-| o          o |_==_|LLL");
-    art.push_back("|\\\\ | | \\\\|LLLL>@>>0<*<<0>>@<<0<<<*<@<LLLL|=_- | !     (    ! |=-_=|LLL");
-    art.push_back("| \\\\| | _(UU)_ >((*))_>0><*<0><@<<<0<*<LL_|-,-=| !    ).    ! |-_-=|_LL");
-    art.push_back("|\\ \\| || / //||.*.*.*.|>>@<<*<<@>><0<<@</=-((=_| ! __(:')__ ! |=_==_-\\L");
-    art.push_back("|\\\\_|_|&&_// ||*.*.*.*|_\\\\db//__LLLLL(\\_/)-=))-|/^\\=^=^^=^=/^\\| _=-_-_\\");
-    art.push_back("\"\"\"\"|'.'.'.|~~|.*.*.*|     ____|_LLL=('.')=//LL ,------------. LLLLLLLL");
-    art.push_back("jgs |'.'.'.|   ^^^^^^|____|>>>>>>|LL( ~~~ )/LLL(((((((())))))))LLLLLLLL");
-    art.push_back("LLLL~~~~~~~~LLLLLLLLL'\"\"\"\"`------'LL`w---w`LLLLL`------------'LLLLLLLLL");
-    es='L';
+    art=dart;
+    es=des;
 }
 void graphics_settings()
 {
@@ -156,11 +197,9 @@ void graphics_settings()
     cin.ignore(1);
     getline(cin,snowflakes);
     cout<<"Enter 1 if you want the snow to cover the art and 0 if you don't (-1 for default): ";
-    cin>>c;
-    cover=c;
+    cin>>cover;
     cout<<"Enter 1 if you want the art horizontally centered and 0 if you don't (-1 for default): ";
-    cin>>c;
-    ahc=c;
+    cin>>ahc;
     cout<<"Enter 1 if you want to edit the colour settings and 0 if you don't: ";
     cin>>c;
     if (c) colour_graphics_settings();
@@ -172,19 +211,17 @@ void graphics_settings()
 }
 void default_graphics_settings()
 {
-    sps=0.15;
-    snowflakes="*";
-    cover=1;
-    ahc=1;
+    sps=dsps;
+    snowflakes=dsnowflakes;
+    cover=dcover;
+    ahc=dahc;
     default_colour_graphics_settings();
     default_art_settings();
 }
 void physics_settings()
 {
-    int c;
     cout<<"Enter 1 for snow accumulation and 0 for no snow accumulation (-1 for default): ";
-    cin>>c;
-    sa=c;
+    cin>>sa;
     cout<<"Enter the size of the snowflakes (double >=0, -1 for default): ";
     cin>>sfsize;
     cout<<"Enter the air resistance (double 0-1, -1 for default): ";
@@ -196,13 +233,13 @@ void physics_settings()
 }
 void default_physics_settings()
 {
-    sa=1;
-    sfsize=0.6;
-    ar=0.2;
-    g=0.2;
-    wind=0.02;
+    sa=dsa;
+    sfsize=dsfsize;
+    ar=dar;
+    g=dg;
+    wind=dwind;
 }
-void probability_settings(char f)
+void probability_settings(int f)
 {
     if (f)
     {
@@ -214,13 +251,13 @@ void probability_settings(char f)
     cout<<"Enter probability of firework appearing (two numbers a and b the probability is a/b, -1 -1 for default): ";
     cin>>pf1>>pf2;
 }
-void default_probability_settings(char f)
+void default_probability_settings(int f)
 {
     if (f) s=time(NULL);
-    ps1=1;
-    ps2=15;
-    pf1=1;
-    pf2=2;
+    ps1=dps1;
+    ps2=dps2;
+    pf1=dpf1;
+    pf2=dpf2;
 }
 void correct_settings()
 {
@@ -229,31 +266,33 @@ void correct_settings()
     if (w==-1) w=csbi.srWindow.Right-csbi.srWindow.Left;
     if (h==-1) h=csbi.srWindow.Bottom-csbi.srWindow.Top;
 
-    if (sps==-1) sps=0.15;
-    if (snowflakes.empty()) snowflakes="*";
-    if (cover==-1) cover=1;
-    if (ahc==-1) ahc=1;
+    if (sps==-1) sps=dsps;
+    if (snowflakes.empty()) snowflakes=dsnowflakes;
+    if (cover==-1) cover=dcover;
+    if (ahc==-1) ahc=dahc;
 
-    char b=3;
-    if (system_background==-1) system_background=b;
-    b=system_background*16;
-    if (background_colour==-1) background_colour=15;
-    if (art_colour==-1) art_colour=4;
-    if (firework_colours.empty()) firework_colours={9,10,11,12,13,14};
-    background_colour+=b;
+    if (system_background==-1) system_background=dsystem_background;
+    if (snowflake_colour==-1) snowflake_colour=dsnowflake_colour;
+    if (snow_colour==-1) snow_colour=dsnow_colour;
+    if (art_colour==-1) art_colour=dart_colour;
+    if (firework_colours.empty()) firework_colours=dfirework_colours;
+    int b=system_background*16;
+    snowflake_colour+=b;
+    if (fs) snow_colour*=17;
+    else snow_colour+=b;
     art_colour+=b;
     for (int i=0;i<firework_colours.size();++i) firework_colours[i]+=b;
 
-    if (sa==-1) sa=1;
-    if (sfsize==-1) sfsize=0.6;
-    if (ar==-1) ar=0.2;
-    if (g==-1) g=0.2;
-    if (wind==-1) wind=0.02;
+    if (sa==-1) sa=dsa;
+    if (sfsize==-1) sfsize=dsfsize;
+    if (ar==-1) ar=dar;
+    if (g==-1) g=dg;
+    if (wind==-1) wind=dwind;
 
-    if (ps1==-1) ps1=1;
-    if (ps2==-1) ps2=15;
-    if (pf1==-1) pf1=1;
-    if (pf2==-1) pf2=2;
+    if (ps1==-1) ps1=dps1;
+    if (ps2==-1) ps2=dps2;
+    if (pf1==-1) pf1=dpf1;
+    if (pf2==-1) pf2=dpf2;
 }
 int minsh; //minimal snow height
 void clear_snow()
@@ -263,7 +302,7 @@ void clear_snow()
         sh[i]=1;
     }
 }
-void start(char f)
+void start(int f)
 {
     int c=0;
     cout<<"Enter 1 if you want to edit the basic settings and 0 if you don't: ";
@@ -287,6 +326,7 @@ void start(char f)
     getch();
     cout.flush();
     set_system_background(system_background);
+    set_text_colour(system_background);
     system("cls");
     if (f) srand(s);
     if (f) clear_snow();
@@ -396,8 +436,9 @@ void simulate_objects()
         fws[i]=f;
     }
 }
-string output_snowflakes[1024],output_art[1024],output_fireworks[1024],output_colour[1024],output_snow[1024],output[1024];
-char char_for_direction(object f)
+string output_snowflakes[1024],output_art[1024],output_fireworks[1024],output_snow[1024],output[1024];
+vector<int> output_colour[1024];
+int char_for_direction(object f)
 {
     if (f.xs==0) return '|';
     double angle=atan(f.ys/f.xs)+PI/2;
@@ -441,7 +482,7 @@ void output_fireworks_all()
         for (int j=0;j<w;++j)
         {
             output_fireworks[i][j]=0;
-            output_colour[i][j]=background_colour;
+            output_colour[i][j]=snowflake_colour;
         }
     }
     for (int i=0;i<fws.size();++i)
@@ -456,7 +497,7 @@ void output_fireworks_all()
 }
 void output_snow_row(int r)
 {
-    char f=1;
+    int f=1;
     string row;
     row.resize(w);
     for (int i=0;i<w;++i)
@@ -464,7 +505,7 @@ void output_snow_row(int r)
         if (r>=round(h-sh[i]))
         {
             row[i]='#';
-            output_colour[r][i]=background_colour;
+            output_colour[r][i]=snow_colour;
         }
         else
         {
@@ -496,7 +537,7 @@ void output_art_row(int r)
         if (f && lc<=i && hc>=i && art[ar][i-lc]!=es)
         {
             row[i]=art[ar][i-lc];
-            if (!cover || (output_colour[r][i]==background_colour && output_snow[r][i]==0 && output_snowflakes[r][i]==0 && output_fireworks[r][i]==0)) output_colour[r][i]=art_colour;
+            if (!cover || (output_colour[r][i]==snowflake_colour && output_snow[r][i]==0 && output_snowflakes[r][i]==0 && output_fireworks[r][i]==0)) output_colour[r][i]=art_colour;
         }
         else row[i]=es;
     }
@@ -521,7 +562,7 @@ void combine_outputs(int r)
     output[r]=row;
 }
 string curr; //current string for output
-char prev_colour=0; //previous colour
+int prev_colour=0; //previous colour
 void output_row(int r)
 {
     for(int i=0;i<w;i++)
@@ -543,8 +584,8 @@ void output_all()
     currminsh=minsh;
     move_cursor(0,0);
     curr="";
-    prev_colour=background_colour;
-    SetConsoleTextAttribute(hConsole,background_colour);
+    prev_colour=snowflake_colour;
+    SetConsoleTextAttribute(hConsole,snowflake_colour);
     output_fireworks_all();
     output_snowflakes_all();
     for (int i=0;i<h-currminsh && i<h;++i)
@@ -560,7 +601,7 @@ double shs[1024];
 void smooth_snow_height()
 {
     int currminsh=h;
-    char f=1;
+    int f=1;
     shs[0]=sh[3*w-1]*0.5+sh[0]*1+sh[1]*0.5;
     shs[3*w-1]=sh[w-1]*1.5+sh[w-2]*0.5;
     for (int i=1;i<3*w-1;++i)
@@ -588,7 +629,7 @@ void snowfall()
     double seconds;
     int step=0;
     startT=clock();
-    char ch;
+    int ch;
     while(1)
     {
         if (rand()%pf2<pf1) generate_firework();
@@ -610,13 +651,13 @@ void snowfall()
             if (ch=='e' || ch=='E')
             {
                 move_cursor(h,0);
-                SetConsoleTextAttribute(hConsole,system_background*16+7);
+                set_text_colour(system_background);
                 break;
             }
             if (ch=='p' || ch=='P')
             {
                 move_cursor(h,0);
-                SetConsoleTextAttribute(hConsole,system_background*16+7);
+                set_text_colour(system_background);
                 cout<<"Press 'p' to unpause, press 's' to edit the settings."<<flush;
                 ch=' ';
                 while (ch!='p' && ch!='P' && ch!='s' && ch!='S')
@@ -635,7 +676,7 @@ void snowfall()
             }
         }
     }
-    SetConsoleTextAttribute(hConsole,system_background*16+7);
+    set_text_colour(system_background);
     getch();
 }
 int main()
