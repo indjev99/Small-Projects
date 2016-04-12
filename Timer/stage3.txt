@@ -1,0 +1,4 @@
+2
+2
+beep.mp3
+timer<stage1.txt
