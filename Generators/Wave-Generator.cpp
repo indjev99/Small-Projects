@@ -1,31 +1,24 @@
 #include<iostream>
 #include<fstream>
 #include<math.h>
+#include<stdlib.h>
 #define PI 3.15159265358979323846
 using namespace std;
-const unsigned long long A=18054258203;
-const unsigned long long B=22897202357;
-const unsigned long long C=17275599613;
-const unsigned long long M=86042711;
-unsigned long long randomLL(unsigned long long a)
-{
-    return (A*a*a+B*a+C)%M;
-}
 unsigned long long last;
-unsigned long long lastA;
+double lastA;
 void seed(unsigned long long a)
 {
     last=a;
     lastA=-1;
 }
-double random(unsigned long long a)
+double random(double a)
 {
     if (a!=lastA)
     {
         lastA=a;
-        last=randomLL(last);
+        last=rand();
     }
-    return double(last)/M;
+    return double(last)/RAND_MAX;
 }
 double mod(double a, double b)
 {
@@ -77,11 +70,11 @@ double waveCosine(double a)
 }
 double waveNoise(double a)
 {
-    return waveSquare(a)*random(fabs(a*2));
+    return waveSquare(a)*random(floor(fabs(a*2)));
 }
 double waveWhiteNoise(double a)
 {
-    return 2*random(fabs(a*2))-1;
+    return 2*random(a)-1;
 }
 double waveWithFrequency(double (*wave)(double), double frequency, double &a)
 {
@@ -98,6 +91,7 @@ double frequencyModulation(double value, double (*wave)(double), double min_freq
 }
 int main()
 {
+    srand(0);
     int SAMPLE_RATE=44100;
     ios::sync_with_stdio(0);
     //ofstream test("test.txt");
@@ -113,7 +107,7 @@ int main()
     a3=0;
     a4=0;
     a5=0;
-    for (int i=0;i<(1<<24);++i)
+    for (int i=0;i<(1<<6)*SAMPLE_RATE;++i)
     {
         val=waveWithFrequency(waveSine,4.1/SAMPLE_RATE,a1)*0.4+waveWithFrequency(waveSine,6.34/SAMPLE_RATE,a2)*0.35,+waveWithFrequency(waveSine,12.32/SAMPLE_RATE,a3)*0.25;
         audio1<<doubleToSignedChar(val);
