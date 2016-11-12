@@ -10,7 +10,7 @@ struct square {
 };
 square s[N][N];
 queue<pair<int, int>> q;
-int update(int x, int y, int v) {
+void update(int x, int y, int v) {
     s[x][y].poss[v]=0;
     int last=-1;
     for (int j=0; j<N; ++j) {

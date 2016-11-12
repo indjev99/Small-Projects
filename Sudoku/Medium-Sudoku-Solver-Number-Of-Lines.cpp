@@ -16,7 +16,7 @@ void is_good(int x, int y, int v, int& last, int i) {
     if (s[x][y].poss[v]==1 && s[x][y].val==-1 && last==-1) last=i;
 }
 void change(int x, int y, int v);
-int update(int x, int y, int v) {
+void update(int x, int y, int v) {
     if (s[x][y].poss[v]==1) q2.push(make_tuple(x,y,v));
     s[x][y].poss[v]=0;
     int last=-1;
