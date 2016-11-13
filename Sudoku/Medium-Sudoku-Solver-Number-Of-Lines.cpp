@@ -1,6 +1,7 @@
 #include<iostream>
 #include<queue>
 #include<tuple>
+#include<conio.h>
 using namespace std;
 const int NPS=3;
 const int N=NPS*NPS;
@@ -23,16 +24,17 @@ void update(int x, int y, int v) {
     for (int j=0; j<N; ++j) is_good(x,y,j,last,j);
     if (last>=0) change(x,y,last);
 }
-void update2(int x, int y, int v) {
-    int last=-1;
-    for (int i=0; i<N; ++i) is_good(x,i,v,last,i);
-    if (last>=0) change(x,last,v);
-    last=-1;
-    for (int i=0; i<N; ++i) is_good(i,y,v,last,i);
-    if (last>=0) change(last,y,v);
-    last=-1;
-    for (int i=0; i<N; ++i) is_good(x/NPS*NPS+i/NPS,y/NPS*NPS+i%NPS,v,last,i);
-    if (last>=0) change(x/NPS*NPS+last/NPS,y/NPS*NPS+last%NPS,v);
+bool update2(int x, int y, int v) {
+    int last1=-1;
+    for (int i=0; i<N; ++i) is_good(x,i,v,last1,i);
+    if (last1>=0) change(x,last1,v);
+    int last2=-1;
+    for (int i=0; i<N && last1<0; ++i) is_good(i,y,v,last2,i);
+    if (last2>=0) change(last2,y,v);
+    int last3=-1;
+    for (int i=0; i<N && last1<0 && last2<0; ++i) is_good(x/NPS*NPS+i/NPS,y/NPS*NPS+i%NPS,v,last3,i);
+    if (last3>=0) change(x/NPS*NPS+last3/NPS,y/NPS*NPS+last3%NPS,v);
+    return last1<0 && last2<0 && last3<0;
 }
 void change(int x, int y, int v) {
     s[x][y].val=v;
@@ -53,8 +55,7 @@ int main() {
             for (int i=0; i<N; ++i) if (s[q.front().first/NPS*NPS+i/NPS][q.front().second/NPS*NPS+i%NPS].val==-1) update(q.front().first/NPS*NPS+i/NPS,q.front().second/NPS*NPS+i%NPS,s[q.front().first][q.front().second].val);
             q.pop();
         }
-        update2(get<0>(q2.front()),get<1>(q2.front()),get<2>(q2.front()));
-        q2.pop();
+        if (update2(get<0>(q2.front()),get<1>(q2.front()),get<2>(q2.front()))) q2.pop();
     }
     for (int i=0; i<N*N; ++i) {
         if (i%NPS==0 && i%N) cout<<" ";

@@ -14,4 +14,4 @@ Records by number of lines:
 
 Easy - 45 lines.
 
-Medium - 66 lines.
+Medium - 67 lines.
