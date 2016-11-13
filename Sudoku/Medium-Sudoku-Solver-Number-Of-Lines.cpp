@@ -1,7 +1,6 @@
 #include<iostream>
 #include<queue>
 #include<tuple>
-#include<conio.h>
 using namespace std;
 const int NPS=3;
 const int N=NPS*NPS;
