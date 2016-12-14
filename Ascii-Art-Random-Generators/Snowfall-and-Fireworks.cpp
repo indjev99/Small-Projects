@@ -95,6 +95,7 @@ int dpf1=1;
 int dpf2=2;
 
 
+int shift=0;
 
 vector<object> fws; //fireworks
 vector<object> sfs; //snowflakes
@@ -287,7 +288,7 @@ void correct_settings()
     if (snowflakes.empty()) snowflakes=dsnowflakes;
     if (cover==-1) cover=dcover;
     if (ahc==-1) ahc=dahc;
-    if (dfs==-1) fs=dfs;
+    if (fs==-1) fs=dfs;
 
     if (system_background==-1) system_background=dsystem_background;
     if (snowflake_colour==-1) snowflake_colour=dsnowflake_colour;
@@ -319,6 +320,7 @@ void clear_snow()
     {
         sh[i]=1;
     }
+    minsh=0;
 }
 void start(int f)
 {
@@ -341,7 +343,11 @@ void start(int f)
     if (c) probability_settings(f);
     else if (f) default_probability_settings(f);
     correct_settings();
-    cout<<"Press 'p' at any time to pause the snowfall, press 'e' at any time to exit the snowfall. Press any key to continue."<<endl;
+    cout<<"Press 'p' at any time to pause the snowfall,\n"<<
+          "press 'c' at any time to clear the snow,\n"<<
+          "press 'e' at any time to exit the snowfall.\n"<<
+          "Press 'r' or 'l' at any moment to move the camera right or left.\n"<<
+          "Press any key to continue."<<endl;
     getch();
     cout.flush();
     set_system_background(system_background);
@@ -349,7 +355,6 @@ void start(int f)
     system("cls");
     if (f) srand(s);
     if (f) clear_snow();
-    minsh=0;
 }
 void generate_snowflake()
 {
@@ -373,7 +378,7 @@ void generate_firework()
     speed=double(rand()%20+15)/10/num2;
     angl=double(2*PI)/num1;
     object f;
-    f.x=rand()%(w*5)*0.2;
+    f.x=rand()%(w*5)*0.2+shift;
     f.y=rand()%(h*5)*0.2;
     f.c=firework_colours[rand()%firework_colours.size()];
     for (int i=0;i<num1;++i)
@@ -485,10 +490,24 @@ void output_snowflakes_all()
             output_snowflakes[i][j]=0;
         }
     }
+    int x,y;
     for (int i=0;i<sfs.size();++i)
     {
         f=sfs[i];
-        if (round(f.y)>=0 && round(f.y)<h && round(f.x)>=0 &&  round(f.x)<w && h-sh[int(round(f.x))]>round(f.y)) output_snowflakes[int(round(f.y))][int(round(f.x))]=f.c;
+        y=round(f.y);
+        x=round(f.x)-shift;
+        if (x<-w)
+        {
+            x+=3*w;
+        }
+        if (x>=w*2)
+        {
+            x-=3*w;
+        }
+        if (y>=0 && y<h && x>=0 &&  x<w && h-sh[x]>y)
+        {
+            output_snowflakes[y][x]=f.c;
+        }
     }
 }
 void output_fireworks_all()
@@ -504,24 +523,37 @@ void output_fireworks_all()
             output_colour[i][j]=snowflake_colour;
         }
     }
+    int x,y;
     for (int i=0;i<fws.size();++i)
     {
         f=fws[i];
-        if (round(f.y)>=0 && round(f.y)<h &&  round(f.x)>=0 && round(f.x)<w && h-sh[int(round(f.x))]>round(f.y))
+        y=round(f.y);
+        x=round(f.x)-shift;
+        if (x<-w)
         {
-            output_fireworks[int(round(f.y))][int(round(f.x))]=char_for_direction(f);
-            output_colour[int(round(f.y))][int(round(f.x))]=f.c;
+            x+=3*w;
+        }
+        if (x>=w*2)
+        {
+            x-=3*w;
+        }
+        if (y>=0 && y<h &&  x>=0 && x<w && h-sh[x]>y)
+        {
+            output_fireworks[y][x]=char_for_direction(f);
+            output_colour[y][x]=f.c;
         }
     }
 }
 void output_snow_row(int r)
 {
     int f=1;
+    int ind;
     string row;
     row.resize(w);
     for (int i=0;i<w;++i)
     {
-        if (r>=round(h-sh[i]))
+        ind=(100*3*w+i+shift)%(3*w);
+        if (r>=round(h-sh[ind]))
         {
             row[i]='#';
             output_colour[r][i]=snow_colour;
@@ -639,7 +671,6 @@ void smooth_snow_height()
         sfs.resize(0);
         fws.resize(0);
         clear_snow();
-        minsh=0;
     }
 }
 void snowfall()
@@ -672,6 +703,28 @@ void snowfall()
                 move_cursor(h,0);
                 set_text_colour(system_background);
                 break;
+            }
+            if (ch=='c' || ch=='C')
+            {
+                clear_snow();
+            }
+            if (ch=='r' || ch=='R')
+            {
+                ++shift;
+                if (shift>=w*2)
+                {
+                    shift-=3*w;
+                }
+                minsh=0;
+            }
+            if (ch=='l' || ch=='L')
+            {
+                --shift;
+                if (shift<-w)
+                {
+                    shift+=3*w;
+                }
+                minsh=0;
             }
             if (ch=='p' || ch=='P')
             {
