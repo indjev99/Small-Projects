@@ -81,7 +81,6 @@ namespace Tree
                         int dir;
                         if (rand.Next() % 2 == 0) dir = 1;
                         else dir = -1;
-                        dist /= ratio;
                         newB = new Branch();
                         newB.x1 = currB.x2;
                         newB.y1 = currB.y2;
@@ -96,7 +95,6 @@ namespace Tree
                         int dir;
                         if (rand.Next() % 2 == 0) dir = 1;
                         else dir = -1;
-                        dist /= ratio;
                         newB = new Branch();
                         newB.x1 = currB.x2;
                         newB.y1 = currB.y2;
@@ -212,7 +210,7 @@ namespace Tree
             Pen currPen;
             foreach (Branch currB in allBranches)
             {
-                if (currB.level > 4) currPen = new Pen(tree, 2);
+                if (currB.level > 4) currPen = new Pen(tree, (int)currB.level/2F);
                 else
                 {
                     currPen = new Pen(leaf, 3);
