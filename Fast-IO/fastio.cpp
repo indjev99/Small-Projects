@@ -36,3 +36,45 @@ static bool scan(int& a)
     while (succ && !isspace(c));
     return true;
 }
+static bool scan(long long& a)
+{
+    char c;
+    bool succ=true;
+    do
+    {
+        succ=scan(c);
+    }
+    while (succ && isspace(c));
+    if (!succ) return false;
+    a=0;
+    do
+    {
+        a=a*10+c-'0';
+        succ=scan(c);
+    }
+    while (succ && !isspace(c));
+    return true;
+}
+static bool scan(std::string& s)
+{
+    char c;
+    bool succ=true;
+    do
+    {
+        succ=scan(c);
+    }
+    while (succ && isspace(c));
+    if (!succ) return false;
+    s="";
+    do
+    {
+        s+='c';
+        succ=scan(c);
+    }
+    while (succ && !isspace(c));
+    return true;
+}
+template<typename T, typename... TT> bool scan(T& x, TT&... xx)
+{
+    return scan(x) && scan(xx...);
+}
