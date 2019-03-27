@@ -1,10 +1,13 @@
 #include <iostream>
 #include <algorithm>
 #include <stdlib.h>
+#include <time.h>
 #include <vector>
 using namespace std;
 
-const int MAX_N=4;
+const int MAX_N=3;
+const int STATES=5;
+
 struct Algorithm
 {
 private:
@@ -12,7 +15,7 @@ private:
     int random_action() const
     {
         if (rand()%4) return rand()%2;
-        else return rand()%(MAX_N-2)-MAX_N;
+        else return rand()%2-MAX_N;
     }
 
 public:
@@ -96,10 +99,44 @@ public:
         }
         return ret;
     }
+    bool run(int maxIter)
+    {
+        int ret=0;
+        int iter=0;
+        while (!ret && iter<maxIter)
+        {
+            ret=update();
+            ++iter;
+        }
+        if (ret==1) return true;
+        else return false;
+    }
 };
 
 int main()
 {
-
+    Prison p;
+    srand(1337);
+    bool fail;
+    while (true)
+    {
+        p.randomize(STATES);
+        fail=false;
+        for (int i=0;i<100;++i)
+        {
+            p.init(MAX_N-rand()%2);
+            if (!p.run(1000))
+            {
+                fail=true;
+                cerr<<"Failed on "<<i<<".\n";
+                break;
+            }
+        }
+        if (!fail)
+        {
+            std::cerr<<"Passed 100 trials successfully at "<<clock()*1.0/CLOCKS_PER_SEC<<".\n";
+            system("pause");
+        }
+    }
     return 0;
 }
