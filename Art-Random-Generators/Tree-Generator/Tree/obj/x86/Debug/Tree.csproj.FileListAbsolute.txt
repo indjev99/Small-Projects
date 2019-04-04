@@ -1,7 +1,0 @@
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\bin\Debug\Tree.exe
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\bin\Debug\Tree.pdb
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\obj\x86\Debug\Tree.TreeForm.resources
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\obj\x86\Debug\Tree.Properties.Resources.resources
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\obj\x86\Debug\Tree.csproj.GenerateResource.Cache
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\obj\x86\Debug\Tree.exe
-D:\GitHub\Small-Projects\Art-Random-Generators\Tree-Generator\Tree\obj\x86\Debug\Tree.pdb
