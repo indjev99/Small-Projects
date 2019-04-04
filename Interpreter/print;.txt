@@ -1,0 +1,5 @@
+print_text "Az kazvam: \"Zdravej svqt\"\n";
+print_text "hello";
+print_endl;
+pause;
+exit;

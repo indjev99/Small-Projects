@@ -1,0 +1,11 @@
+print_text "Vyvedete 4islo:";
+print_endl;
+scan a;
+e=a%10;
+d=a/10%10;
+s=a/100;
+a2=s+d*10+e*100;
+print_var a2;
+print_endl;
+pause;
+exit;

@@ -1,0 +1,8 @@
+print_text "Vyvedete 2 4isla:";
+print_endl;
+scan a;
+scan a2;
+sum=a+a2;
+print_var sum;
+print_endl;
+exit;

@@ -1,0 +1,15 @@
+print_text "Vyvedete godina:";
+print_endl;
+scan a;
+b=(a%4==0 && a%100!=0) || a%400==0;
+c1=!b*110;
+c2=!b*101;
+c3=!b*32;
+print_text "Godinata ";
+print_char c1;
+print_char c2;
+print_char c3;
+print_text "e visokosna.";
+print_endl;
+pause;
+exit;

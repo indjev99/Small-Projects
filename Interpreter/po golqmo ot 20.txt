@@ -1,0 +1,9 @@
+print_text "Napishi chislo i az shte ti kaja po golqmo li e ot 20.";
+print_endl;
+scan n;
+a=(n>20)*68+(!(n>20))*78;
+a2=(n>20)*97+(!(n>20))*101;
+print_char a;
+print_char a2;
+print_endl;
+exit;

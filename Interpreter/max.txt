@@ -1,0 +1,11 @@
+print_text "Vyvedi 3 4isla za da ti kaja maksa";
+print_endl;
+scan a1;
+scan a2;
+scan a3;
+min=(a1>a2)*a1+(!(a1>a2))*a2;
+min=(min>a3)*min+(!(min>a3))*a3;
+print_var min;
+print_endl;
+pause;
+exit;

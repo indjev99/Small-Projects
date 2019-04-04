@@ -1,0 +1,6 @@
+scan a;
+sum=(a+1)*a/2;
+print_var sum;
+print_endl;
+pause;
+exit;

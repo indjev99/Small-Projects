@@ -1,0 +1,9 @@
+print_text "Vyvedi stranite\n";
+scan a;
+scan b;
+c=(a+b)*2;
+print_text "Obikolkata e ";
+print_var c;
+print_endl;
+pause;
+exit;
