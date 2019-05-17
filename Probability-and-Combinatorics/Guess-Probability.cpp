@@ -4,23 +4,29 @@
     The process is repeated n times, where p_1 .. p_n are independent.
     Assuming a null hypothesis that B's claim is correct,
     what is the probability of having this (or a more extreme)
-    result from the coin flips (the p-value)? */
+    result from the coin flips (the p-value)?
 
-/** We start with designing a metric S to judge B, which measures the
+    We start with designing a metric S to judge B, which measures the
     probability of getting this exact result assuming the null hypothesis.
     For each coin i the probability of landing heads is q_i, and tails (1-q_i).
     Therefore, the product of q-s and (1-q)s (depending on how the coin landed)
     is the probability of getting those results from the flips given that q_i = p_i.
-    Notice that this metric is maximized when q_i = p_i, therefore B has no incentive to lie.*/
+    Notice that this metric is maximized when q_i = p_i, therefore B has no incentive to lie.
 
-/** Now we want to know the expected value of S - E[S] and find the difference.
+    Now we want to know the expected value of S - E[S] and find the difference.
     Then we need to divide that by the standard deviation of S and finally covert to a p-value.
     Let s be the score from one flip.
-    E[s] = integral{0,1}(f_p(x) * (x^2 - (1-x)^2) * dx)
+    s | H = p
+      | T = 1-p
+    E_p[s] = p^2 + (1-p)^2
+    E[s] = integral{0,1}(f_p(x) * (x^2 + (1-x)^2) * dx)
     E[S] = E[s]^n.
     Var[S] = E[S^2] - E[S]^2
-    E[s^2] = integral{0,1}(f_p(x) * (x^2 - (1-x)^2)^2 * dx)  // Empiric testing has shown there is a mistake here
-    E[S^2] = E[s^2]^n                                        //
+    s^2 | H = p^2
+        | T = (1-p)^2
+    E_p[s] = p^3 + (1-p)^3
+    E[s^2] = integral{0,1}(f_p(x) * (x^3 + (1-x)^3) * dx)
+    E[S^2] = E[s^2]^n
     Var[S] = E[S^2] - E[S]^2
            = E[S^2] * (1 - E[S]^2 / E[S^2])
     SD[S] = Sqrt(Var[S])
@@ -132,11 +138,11 @@ double find_ln_expected_score(const CoinGenerator* coinGenerator, int n, int STE
     for (int i=0;i<STEPS;++i)
     {
         double x=step/2+step*i;
-        double sp=x*x+(1-x)*(1-x);
-        elems.push_back(coinGenerator->pdf(x)*sp*step);
+        double s=x*x+(1-x)*(1-x);
+        elems.push_back(coinGenerator->pdf(x)*s*step);
     }
-    double s=safe_sum(elems);
-    return log(s)*n;
+    double es=safe_sum(elems);
+    return log(es)*n;
 }
 
 double find_ln_expected_score_squared(const CoinGenerator* coinGenerator, int n, int STEPS)
@@ -146,22 +152,22 @@ double find_ln_expected_score_squared(const CoinGenerator* coinGenerator, int n,
     for (int i=0;i<STEPS;++i)
     {
         double x=step/2+step*i;
-        double sp=x*x+(1-x)*(1-x);
-        elems.push_back(coinGenerator->pdf(x)*sp*sp*step);
+        double s2=x*x*x+(1-x)*(1-x)*(1-x);
+        elems.push_back(coinGenerator->pdf(x)*s2*step);
     }
-    double s=safe_sum(elems);
-    return log(s)*n;
+    double es2=safe_sum(elems);
+    return log(es2)*n;
 }
 
-const int N=50;
-const int STEPS=1e5;
+const int N=20;
+const int STEPS=1e6;
 
 #include <conio.h>
 int main()
 {
     CoinGenerator* coinGeneratorUniform=new CoinGeneratorUniform();
     Predictor* predictorCorrect=new PredictorCorrect();
-    Predictor* predictorBiased=new PredictorBiased(1);
+    Predictor* predictorBiased=new PredictorBiased(0.1);
 
 
     double lnScore;
@@ -196,16 +202,17 @@ int main()
     std::vector<double> exp2Vect;
     std::vector<double> varVect;
 
-    for (int i=0;i<1e7;++i)
+    for (int i=0;i<10;++i)
     {
         lnScore=find_ln_score(coinGeneratorUniform,predictorBiased,N);
         lnSoverSD=lnScore-lnSDScore;
         devs=exp(lnSoverSD)-exp(lnEoverSD);
 
-        /*std::cout<<std::endl;
+        std::cout<<std::endl;
         std::cout<<"S: "<<lnScore<<' '<<exp(lnScore)<<std::endl;
         std::cout<<"S / SD[S]: "<<lnSoverSD<<' '<<exp(lnSoverSD)<<std::endl;
-        std::cout<<"(S - E[S]) / SD[S]: "<<devs<<std::endl;*/
+        std::cout<<"S - E[S]: "<<exp(lnScore)-exp(lnExpScore)<<std::endl;
+        std::cout<<"(S - E[S]) / SD[S]: "<<devs<<std::endl;
 
         ++cnt;
         double diff=exp(lnScore)-exp(lnExpScore);
