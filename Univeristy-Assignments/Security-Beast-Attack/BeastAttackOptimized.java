@@ -1,7 +1,6 @@
 import java.io.*;
 import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import java.util.Arrays;
-import java.util.Date;
 import java.text.DecimalFormat;
 
 public class BeastAttackOptimized
