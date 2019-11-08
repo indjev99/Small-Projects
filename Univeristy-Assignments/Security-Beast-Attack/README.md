@@ -1,0 +1,1 @@
+Implementation of the Beast Attack. We are provided with some encrypt file, which encrypts a fixed message with a fixed key (but not fixed IVs). The encryption uses CBC block mode. We have to attack it by using an "exploit" that we can add up to one block of prefix to the message before encryption, we also have to figure out how the IV is generated.
