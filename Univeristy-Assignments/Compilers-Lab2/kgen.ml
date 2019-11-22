@@ -59,7 +59,7 @@ and gen_addr v =
             CONST n -> if n >= 0 && n < array_len then CONST (n * sz)
                        else failwith "gen_addr: const array index out of bounds"
           | _ -> SEQ [idx_expr_code; CONST array_len; BOUND line; sz_mul_code] in
-        (SEQ [idx_addr_code; base_addr_code; BINOP Plus], line)
+        (SEQ [idx_addr_code; base_addr_code; OFFSET], line)
     | _ -> failwith "gen_addr"
 
 (* |gen_cond| -- generate code for short-circuit condition *)
