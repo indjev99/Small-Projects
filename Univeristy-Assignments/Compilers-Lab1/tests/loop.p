@@ -1,29 +1,10 @@
-(* lab1/loop.p *)
-
 begin
-  x := 12345;
-  i := 1;
   loop
-    print i; newline;
-    j := 2 * i; 
-    if j > x then exit end;
-    i := j
+    x := x + 1;
+    if x >= 10 then exit end;
+    y := y + x;
+    print x;
+    print y;
+    newline
   end
 end.
-
-(*<<
- 1
- 2
- 4
- 8
- 16
- 32
- 64
- 128
- 256
- 512
- 1024
- 2048
- 4096
- 8192
->>*)

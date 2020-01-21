@@ -1,27 +1,17 @@
-(* lab1/case.p *)
-
 begin
   i := 0;
-  while i < 10 do
-    case i of
-      1, 3, 5:
-        i := i + 1;
-        i := i + 2
-    | 2, 6: 
-        i := i - 1;
-    | 8:
-        i := i + 2;
+  loop
+    i := i + 1;
+    case i mod 35 of
+       0:
+          print -350; newline;
+          exit
+      | 5, 10, 15, 20, 25, 30:
+          print -50; newline
+      | 7, 14, 21, 28:
+          print -70; newline
     else
-      i := i + 1
-    end;
-    print i; newline
+      print i; newline
+    end
   end
 end.
-
-(*<<
- 1
- 4
- 5
- 8
- 10
->>*)

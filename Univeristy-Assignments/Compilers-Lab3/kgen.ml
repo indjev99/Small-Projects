@@ -21,6 +21,8 @@ let gen_ascend n =
 let gen_addr level d =
   if d.d_level = 0 then
     GLOBAL d.d_lab
+  else if d.d_level == level then
+    LOCAL d.d_off
   else
     let asc_code = gen_ascend (level - d.d_level) in
     SEQ [asc_code; CONST d.d_off; OFFSET]

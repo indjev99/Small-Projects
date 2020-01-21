@@ -1,3 +1,5 @@
+(* lab1/repeat.p *)
+
 begin
   i := 0;
   repeat
@@ -6,3 +8,9 @@ begin
     print i; newline
   until i mod 5 = 0
 end.
+
+(*<<
+ 1
+ 4
+ 25
+>>*)
