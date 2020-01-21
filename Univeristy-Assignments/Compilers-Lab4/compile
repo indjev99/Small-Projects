@@ -1,0 +1,7 @@
+#!/bin/sh
+
+ARMGCC="arm-linux-gnueabihf-gcc -marm -march=armv6"
+
+set -x
+
+./ppc $* >b.s && $ARMGCC -g b.s pas0.o -static -o b.out
