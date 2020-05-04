@@ -147,6 +147,7 @@ vector<int> prevDigVals;
 stack<Node> nodeStack;
 stack<int> opStack;
 bool typesFine;
+bool lastOp;
 
 string expressionString(int idx, bool printVals=false, int parOp=LBR, bool isLeft=true)
 {
@@ -304,6 +305,7 @@ void processToken(const string& token)
     {
         nodeStack.push(Node(numReps.size()));
         numReps.push_back(token);
+        lastOp = false;
         return;
     }
     int len;
@@ -319,12 +321,16 @@ void processToken(const string& token)
         }
     }
     if (len == 0) throw UNKNOWN_TOKEN;
-    pushToStack(op);
+    if (op == ADD && lastOp) op = UPL;
+    if (op == SUB && lastOp) op = UMI;
+    lastOp = op != RBR;
+    if (op != UPL) pushToStack(op);
     processToken(token.substr(len, token.size() - len));
 }
 
 void parseExpression(const string& str)
 {
+    lastOp = true;
     typesFine = true;
     numReps.clear();
     tree.clear();
