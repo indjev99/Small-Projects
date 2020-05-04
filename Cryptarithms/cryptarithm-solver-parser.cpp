@@ -182,6 +182,75 @@ string expressionString(int idx, bool printVals=false, int parOp=LBR, bool isLef
     return str;
 }
 
+long long qpow(long long a, long long n)
+{
+    if (n == 0) return 1;
+    if (n == 1) return a;
+    long long rest = qpow(a, n / 2);
+    if (n % 2 == 0) return rest * rest;
+    else return a * rest * rest;
+}
+
+long long evalExpression(int idx, bool &error)
+{
+    const Node& node = tree[idx];
+    long long lnum, rnum;
+    if (opProps[node.op].numIns >= 1) lnum = evalExpression(node.lchild, error);
+    if (error) return 0;
+    if (opProps[node.op].numIns >= 2) rnum = evalExpression(node.rchild, error);
+    if (error) return 0;
+
+    switch (node.op)
+    {
+    case NUM:
+        return nums[node.numIdx];
+    case ADD:
+        return lnum + rnum;
+    case SUB:
+        return lnum - rnum;
+    case UPL:
+        return lnum;
+    case UMI:
+        return -lnum;
+    case MUL:
+        return lnum * rnum;
+    case DIV:
+        if (rnum == 0) return error = 0;
+        return lnum / rnum;
+    case MOD:
+        if (rnum == 0) return error = 0;
+        return (lnum % rnum + rnum) % rnum;
+    case POW:
+        if (rnum < 0) return error = 0;
+        return qpow(lnum, rnum);
+    case EQ:
+        return lnum == rnum;
+    case LT:
+        return lnum < rnum;
+    case GT:
+        return lnum > rnum;
+    case LEQ:
+        return lnum <= rnum;
+    case GEQ:
+        return lnum >= rnum;
+    case NEQ:
+        return lnum != rnum;
+    case NOT:
+        return !lnum;
+    case AND:
+        return lnum && rnum;
+    case OR:
+        return lnum || rnum;
+    case IMP:
+        return lnum <= rnum;
+    case BMP:
+        return lnum == rnum;
+    default:
+        cerr << "ERROR: Unknown operator " << node.op << "!" << endl;
+        return error = 0;
+    }
+}
+
 void popFromStack()
 {
     int next = opStack.top();
@@ -286,7 +355,6 @@ void parseExpression(const string& str)
     tree.push_back(nodeStack.top());
     nodeStack.pop();
     if (opProps[tree[treeRoot].op].outType != BOOLEAN) typesFine = false;
-    cerr << expressionString(treeRoot) << endl;
     if (!typesFine) throw TYPE_ERROR;
 }
 
@@ -370,11 +438,6 @@ int getDigVal(int idx)
     else return digVals[idx];
 }
 
-bool checkExpression()
-{
-    return true;
-}
-
 bool checkSolution()
 {
     for (int i = 0; i < digits.size(); ++i)
@@ -389,7 +452,9 @@ bool checkSolution()
             nums[i] = nums[i] * BASE + getDigVal(idx);
         }
     }
-    return checkExpression();
+    bool error = false;
+    long long res = evalExpression(treeRoot, error);
+    return !error && res == 1;
 }
 
 void printSolution()
@@ -436,8 +501,9 @@ void solve()
         first = false;
     }
     while (next_permutation(digVals.begin(), digVals.end()));
-    if (numSols == 0) cout << "No solutions found!" << endl;
-    else cout << numSols << " solutions found!" << endl;
+    if (numSols == 0) cout << "No solutions found." << endl;
+    if (numSols == 1) cout << "1 solution found." << endl;
+    else cout << numSols << " solutions found." << endl;
 }
 
 int main()
