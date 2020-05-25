@@ -1,0 +1,129 @@
+{- Data type for the IDs of the sheds, lines and trains. -}
+datatype T = A | B | C | D | E
+
+{- Channels indicating a train moving from a shed to a line and vice versa.
+   Format is chan.x.y.z meaning line x, shed y, train z. -}
+channel shed2line, line2shed: T.T.T
+
+{- Event done indicating the final position has been reached. -}
+channel done
+
+{- The initial locations of the trains on the lines. -}
+{- Format is (x, z) meaning line x, train z. -}
+Init = {(A, E), (B, D), (C, C), (D, B), (E, A)}
+
+{- The connections between lines and sheds. -}
+{- Format is (x, y) meaning line x, shed y. -}
+Connections = {(A, A), (A, B), (B, B), (C, A), (C, C), (D, B), (D, D), (D, E), (E, C), (E, E)}
+
+{- Process for shed y, which starts empty. -}
+Shed(y) = line2shed?x!y?z ->
+            (shed2line?x!y!z -> Shed(y)  {- Either the train can leave the shed -}
+             [] z == y & done -> STOP)  {- or if it is in the correct shed we can be done. -}
+
+{- Process for line x, which starts with train z. -}
+Line(x, z) = line2shed!x?y!z -> Line'(x)
+
+{- Process for line x, which starts empty. -}
+Line'(x) = shed2line!x?y?z -> line2shed!x?y!z -> Line'(x)  {- Either a train can come in and leave -}
+           [] done -> STOP                                 {- or if the line is empty we can be done. -}
+
+{- The alphabet of shed y. -}
+AlphShed(y) = {shed2line.x.y.z, line2shed.x.y.z, done | x <- T, z <- T}
+
+{- The alphabet of line x. -}
+AlphLine(x) = {shed2line.x.y.z, line2shed.x.y.z, done | y <- T, z <- T}
+
+{- The alphabet for the lines, sheds and 'done'. -}
+AlphLSD = {shed2line.x.y.z, line2shed.x.y.z, done | x <- T, y <- T, z <- T}
+
+{- Process representing all of the sheds. -}
+Sheds = || y:T @ [AlphShed(y)] Shed(y)
+
+{- Process representing all of the lines. -}
+Lines = || (x, z):Init @ [AlphLine(x)] Line(x, z)
+
+{- Process representing the entire system without constraints. -}
+System' = Sheds [|AlphLSD|] Lines
+
+{- The set of legal events. -}
+Legal = {shed2line.x.y.z, line2shed.x.y.z, done | (x, y) <- Connections, z <- T}
+
+{- Process representing the entire system with constraints. -}
+System = System' [|AlphLSD|] RUN(Legal)
+
+{- This finds the minimal solution. -}
+assert RUN(diff(AlphLSD, {done})) [T= System
+
+{- The solution found has 27 train moves. -}
+
+{- OPTIONAL -}
+
+{- Channel indicating the driver moves to train z. -}
+channel enter, leave: T
+
+{- Process for train z without a driver. -}
+Train(z) = enter!z -> Train'(z)  {- The driver can enter the train -}
+           [] done -> STOP       {- or the train can be done. -}
+
+{- Process for train z with a driver. -}
+Train'(z) = shed2line?x?y!z -> Train'(z)     {- The boarded train can be driven -}
+            [] line2shed?x?y!z -> Train'(z)
+            [] leave!z -> Train(z)           {- or the driver can leave it. -}
+
+{- Process for the driver. -}
+Driver = enter?z -> leave!z -> Driver
+
+{- The alphabet of train z. -}
+AlphTrain(z) = {enter.z, leave.z, shed2line.x.y.z, line2shed.x.y.z, done | x <- T, y <- T}
+
+{- The alphabet of the driver. -}
+AlphDriver = {enter.z, leave.z | z <- T}
+
+{- The full alphabet. -}
+Sigma = union(AlphLSD, AlphDriver)
+
+{- Process representing all of the trains. -}
+Trains = || z:T @ [AlphTrain(z)] Train(z)
+
+{- Process representing the system with trains but no driver. -}
+SystemWithTrains = System [|AlphLSD|] Trains
+
+{- Process representing the entire system with trains and driver. -}
+SystemWithDriver = SystemWithTrains [|AlphDriver|] Driver
+
+{- This finds a minimal-ish solution. -}
+assert RUN(diff(Sigma, {done})) [T= SystemWithDriver
+
+{- This will minimize n + 2m, where n is the # of train moves and m is the # of driver moves.
+   The solution found has n = 27 and m = 11 for a total of 49 events.
+   We can test whether that is really the minimum for m by looking for a solution with m <= 10.
+   This is done by just hardcoding the driver to do no more than 10 moves. -}
+
+{- Process for a driver that does no more than m driver moves. -}
+LimitedDriver(m) = if m > 0 then enter?z -> leave!z -> LimitedDriver(m - 1) else STOP
+
+{- Process representing the entire system with trains and a limited driver. -}
+SystemWithLimitedDriver(m) = SystemWithTrains [|AlphDriver|] LimitedDriver(m)
+
+{- Tests for a solution with m <= 10 driver moves. -}
+assert RUN(diff(Sigma, {done})) [T= SystemWithLimitedDriver(10)
+
+{- This passes, so there is no solution with m <= 10.
+   Therefore the solution with n = 27, m = 11 is minimal for both n and m. -}
+
+{- JUST FOR FUN -}
+
+{- Process for two drivers. -}
+TwoDrivers = Driver ||| Driver
+
+{- Process representing the entire system with trains and two drivers. -}
+SystemWithTwoDrivers = SystemWithTrains [|AlphDriver|] TwoDrivers
+
+{- This finds a minimal-ish solution. -}
+assert RUN(diff(Sigma, {done})) [T= SystemWithTwoDrivers
+
+{- This finds a solution with n = 27 and m = 6. -}
+
+
+
