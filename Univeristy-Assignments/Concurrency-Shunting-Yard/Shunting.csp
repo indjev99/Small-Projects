@@ -16,17 +16,19 @@ Init = {(A, E), (B, D), (C, C), (D, B), (E, A)}
 {- Format is (x, y) meaning line x, shed y. -}
 Connections = {(A, A), (A, B), (B, B), (C, A), (C, C), (D, B), (D, D), (D, E), (E, C), (E, E)}
 
-{- Process for shed y, which starts empty. -}
-Shed(y) = line2shed?x!y?z ->
-            (shed2line?x!y!z -> Shed(y)  {- Either the train can leave the shed -}
-             [] z == y & done -> STOP)  {- or if it is in the correct shed we can be done. -}
+{- Process for shed y with no train. -}
+Shed(y) = line2shed?x!y?z -> Shed'(y, z)  {- A train can enter the shed. -}
 
-{- Process for line x, which starts with train z. -}
-Line(x, z) = line2shed!x?y!z -> Line'(x)
+{- Process for shed y with train z. -}
+Shed'(y, z) = shed2line?x!y!z -> Shed(y)  {- Either the train can leave the shed -}
+              [] z == y & done -> STOP    {- or, if it is in the correct, shed it can be done. -}
 
-{- Process for line x, which starts empty. -}
-Line'(x) = shed2line!x?y?z -> line2shed!x?y!z -> Line'(x)  {- Either a train can come in and leave -}
-           [] done -> STOP                                 {- or if the line is empty we can be done. -}
+{- Process for line x with train z. -}
+Line(x, z) = line2shed!x?y!z -> Line'(x)  {- The train can leave the line. -}
+
+{- Process for line x with no train. -}
+Line'(x) = shed2line!x?y?z -> Line(x, z)  {- Either a train can enter the line -}
+           [] done -> STOP                {- or the line can be done. -}
 
 {- The alphabet of shed y. -}
 AlphShed(y) = {shed2line.x.y.z, line2shed.x.y.z, done | x <- T, z <- T}
@@ -124,6 +126,3 @@ SystemWithTwoDrivers = SystemWithTrains [|AlphDriver|] TwoDrivers
 assert RUN(diff(Sigma, {done})) [T= SystemWithTwoDrivers
 
 {- This finds a solution with n = 27 and m = 6. -}
-
-
-
