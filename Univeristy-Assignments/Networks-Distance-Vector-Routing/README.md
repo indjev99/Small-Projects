@@ -1,0 +1,1 @@
+Router code for distance vector routing. Three solutions are implemented for the count to infinity problem: small infinity, small horizon and poison reverse. Some routers also send messages to each other at regular time intervals.

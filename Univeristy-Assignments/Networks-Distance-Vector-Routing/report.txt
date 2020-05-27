@@ -1,0 +1,272 @@
+Routing table at the end of AllAlive:
+
+[INFO]  @A: Routing table:
+[INFO]  --A--> A: 0
+[INFO]  --B--> B: 1
+[INFO]  --B--> C: 2
+[INFO]  --B--> D: 2
+[INFO]  --B--> E: 3
+[INFO]
+[INFO]  @B: Routing table:
+[INFO]  --A--> A: 1
+[INFO]  --B--> B: 0
+[INFO]  --C--> C: 1
+[INFO]  --D--> D: 1
+[INFO]  --C--> E: 2
+[INFO]
+[INFO]  @C: Routing table:
+[INFO]  --B--> A: 2
+[INFO]  --B--> B: 1
+[INFO]  --C--> C: 0
+[INFO]  --E--> D: 2
+[INFO]  --E--> E: 1
+[INFO]
+[INFO]  @D: Routing table:
+[INFO]  --B--> A: 2
+[INFO]  --B--> B: 1
+[INFO]  --E--> C: 2
+[INFO]  --D--> D: 0
+[INFO]  --E--> E: 1
+[INFO]
+[INFO]  @E: Routing table:
+[INFO]  --C--> A: 3
+[INFO]  --C--> B: 2
+[INFO]  --C--> C: 1
+[INFO]  --D--> D: 1
+[INFO]  --E--> E: 0
+[INFO]
+
+Routing table at the end of Ring5_4_BFails:
+
+[INFO]  @A: Routing table:
+[INFO]  --A--> A: 0
+[INFO]  --F--> B: 16
+[INFO]  --F--> C: 3
+[INFO]  --F--> D: 5
+[INFO]  --F--> E: 4
+[INFO]  --F--> F: 1
+[INFO]  --F--> G: 2
+[INFO]
+[INFO]  @B: Routing table:
+[INFO]  --A--> A: 1
+[INFO]  --B--> B: 0
+[INFO]  --C--> C: 1
+[INFO]  --D--> D: 1
+[INFO]  --C--> E: 2
+[INFO]  --A--> F: 2
+[INFO]  --C--> G: 2
+[INFO]
+[INFO]  @C: Routing table:
+[INFO]  --G--> A: 3
+[INFO]  --B--> B: 16
+[INFO]  --C--> C: 0
+[INFO]  --E--> D: 2
+[INFO]  --E--> E: 1
+[INFO]  --G--> F: 2
+[INFO]  --G--> G: 1
+[INFO]
+[INFO]  @D: Routing table:
+[INFO]  --E--> A: 5
+[INFO]  --E--> B: 16
+[INFO]  --E--> C: 2
+[INFO]  --D--> D: 0
+[INFO]  --E--> E: 1
+[INFO]  --E--> F: 4
+[INFO]  --E--> G: 3
+[INFO]
+[INFO]  @E: Routing table:
+[INFO]  --C--> A: 4
+[INFO]  --C--> B: 16
+[INFO]  --C--> C: 1
+[INFO]  --D--> D: 1
+[INFO]  --E--> E: 0
+[INFO]  --C--> F: 3
+[INFO]  --C--> G: 2
+[INFO]
+[INFO]  @F: Routing table:
+[INFO]  --A--> A: 1
+[INFO]  --G--> B: 16
+[INFO]  --G--> C: 2
+[INFO]  --G--> D: 4
+[INFO]  --G--> E: 3
+[INFO]  --F--> F: 0
+[INFO]  --G--> G: 1
+[INFO]
+[INFO]  @G: Routing table:
+[INFO]  --F--> A: 2
+[INFO]  --C--> B: 16
+[INFO]  --C--> C: 1
+[INFO]  --C--> D: 3
+[INFO]  --C--> E: 2
+[INFO]  --F--> F: 1
+[INFO]  --G--> G: 0
+[INFO]
+
+-----------------------------------------------------------------------------
+
+Here we compare pure small infinity, split horizon and poison reverse.
+We count the number of events after the failure is detected until the
+routing tables have converged. Also we present the elapsed time.
+The experiments are done on Ring5_4_BFails.
+
+Small infinity (set to 16):
+
+The failure is detected at events 576 to 578 and time t=30s.
+The final route update happens at event 901 and time t=30.39s.
+The total number of events is 323 and the time is dt=0.39s.
+
+Split horizon:
+
+The failure is detected at events 370 to 372 and time t=30s.
+The final route update happens at event 459 and time t=30.105s.
+The total number of events is 87 and the time is dt=0.105s.
+
+Poison reverse:
+
+The failure is detected at events 576 to 578 and time t=30s.
+The final route update happens at event 722 and time t=30.105s.
+The total number of events is 144 and the time is dt=0.105s.
+
+Conclusion:
+
+For these cases enabling small infinity together with split horizon
+or poison reverse doesn't make a difference. However, it is a good idea
+to keep it enabled because there might be some bad cases for the two
+strategies where we would have a count to infinity problem.
+
+Split horizon and poison reverse are both faster than using a small
+infinity both in terms of number of packets/events and elapsed time.
+Poison reverse and split horizon seem to take the same ammount of time
+but posion reverse uses more packets. This makes sense as it is sending
+infinity packets to its next hops, while split horizon is sending nothing.
+
+-----------------------------------------------------------------------------
+
+Here are some logs of all message packets.
+Here Split Horizon was used (with small infinity = 16).
+
+BFails:
+
+[INFO]  @E: Message 73 arrived from D for C
+[INFO]  @C: Message 74 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @C: Message 75 arrived from E for A
+[INFO]  @B: Message 76 arrived from C for A
+[INFO]  @A: Message 77 arrived from B for A
+[INFO]  @A: Accepting message: [This is a message from E to A.]
+[INFO]  @E: Message 163 arrived from D for C
+[INFO]  @C: Message 164 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @C: Message 165 arrived from E for A
+[INFO]  @E: Message 202 arrived from D for C
+[INFO]  @C: Message 203 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @C: Message 239 arrived from E for A
+[INFO]  @E: Message 300 arrived from D for C
+[INFO]  @C: Message 301 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @E: Dropped message for A: [This is a message from E to A.]
+[INFO]  @E: Message 337 arrived from D for C
+[INFO]  @C: Message 373 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @E: Dropped message for A: [This is a message from E to A.]
+[INFO]  @E: Message 409 arrived from D for C
+[INFO]  @C: Message 410 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @E: Dropped message for A: [This is a message from E to A.]
+[INFO]  @E: Message 481 arrived from D for C
+[INFO]  @C: Message 482 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+[INFO]  @E: Dropped message for A: [This is a message from E to A.]
+[INFO]  @E: Message 518 arrived from D for C
+[INFO]  @C: Message 519 arrived from E for C
+[INFO]  @C: Accepting message: [This is a message from D to C.]
+
+Ring5_4_BFails with the following changes/additions:
+
+*.B.diesAt = 20s
+
+*.A.messageSendingInterval = 7s 
+*.A.messageTo = "D"
+
+*.F.messageSendingInterval = 8s 
+*.F.messageTo = "B"
+
+*.E.messageSendingInterval = 9s 
+*.E.messageTo = "F"
+
+[INFO]  @B: Message 108 arrived from A for D
+[INFO]  @D: Message 109 arrived from B for D
+[INFO]  @D: Accepting message: [This is a message from A to D.]
+[INFO]  @A: Message 110 arrived from F for B
+[INFO]  @B: Message 111 arrived from A for B
+[INFO]  @B: Accepting message: [This is a message from F to B.]
+[INFO]  @C: Message 112 arrived from E for F
+[INFO]  @G: Message 113 arrived from C for F
+[INFO]  @F: Message 114 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @B: Message 185 arrived from A for D
+[INFO]  @D: Message 186 arrived from B for D
+[INFO]  @D: Accepting message: [This is a message from A to D.]
+[INFO]  @A: Message 257 arrived from F for B
+[INFO]  @B: Message 258 arrived from A for B
+[INFO]  @B: Accepting message: [This is a message from F to B.]
+[INFO]  @C: Message 259 arrived from E for F
+[INFO]  @G: Message 260 arrived from C for F
+[INFO]  @F: Message 261 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @A: Message 333 arrived from F for B
+[INFO]  @C: Message 390 arrived from E for F
+[INFO]  @G: Message 391 arrived from C for F
+[INFO]  @F: Message 392 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @A: Message 449 arrived from F for B
+[INFO]  @C: Message 507 arrived from E for F
+[INFO]  @G: Message 508 arrived from C for F
+[INFO]  @F: Message 509 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @A: Message 521 arrived from F for B
+[INFO]  @A: Dropped message for B: [This is a message from F to B.]
+[INFO]  @F: Message 599 arrived from A for D
+[INFO]  @G: Message 600 arrived from F for D
+[INFO]  @C: Message 601 arrived from G for D
+[INFO]  @E: Message 602 arrived from C for D
+[INFO]  @D: Message 603 arrived from E for D
+[INFO]  @D: Accepting message: [This is a message from A to D.]
+[INFO]  @C: Message 604 arrived from E for F
+[INFO]  @G: Message 660 arrived from C for F
+[INFO]  @F: Message 661 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @F: Dropped message for B: [This is a message from F to B.]
+[INFO]  @F: Message 662 arrived from A for D
+[INFO]  @G: Message 663 arrived from F for D
+[INFO]  @C: Message 664 arrived from G for D
+[INFO]  @E: Message 665 arrived from C for D
+[INFO]  @D: Message 666 arrived from E for D
+[INFO]  @D: Accepting message: [This is a message from A to D.]
+[INFO]  @C: Message 722 arrived from E for F
+[INFO]  @G: Message 723 arrived from C for F
+[INFO]  @F: Message 724 arrived from G for F
+[INFO]  @F: Accepting message: [This is a message from E to F.]
+[INFO]  @F: Dropped message for B: [This is a message from F to B.]
+[INFO]  @F: Message 780 arrived from A for D
+[INFO]  @G: Message 781 arrived from F for D
+[INFO]  @C: Message 782 arrived from G for D
+[INFO]  @E: Message 783 arrived from C for D
+[INFO]  @D: Message 784 arrived from E for D
+[INFO]  @D: Accepting message: [This is a message from A to D.]
+
+Note that here a couple of messages go missing between the
+time B fails and the time the failure is detected. These are
+the messages from A to D at times 21s, 28s and 35s, as well
+as the messages from F to B at times 24s and 32s.
+
+Also, note that usually the sender is the one that drops the
+message as he knows that there is no path to the destination
+after the routing tables have converged. In the second log we
+can see a more interesting case at t=40s. Even though B has
+failed at t=20s, everyone still believes there is a path to it.
+Then F sends a message to B through its next hop A. However, A
+has just detected that B has failed, so A drops the message.
+
+[INFO]  @A: Dropped message for B: [This is a message from F to B.]
