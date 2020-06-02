@@ -1,0 +1,217 @@
+ThreadId = {0, 1}                 {- thread identities -}
+Boolean = {0, 1}                  {- represent booleans as 0 and 1 -}
+Data = union(ThreadId, Boolean)   {- both thread IDs and booleans -}
+
+datatype VarName = b0 | b1 | turn {- names of variables -}
+
+{- We'll store b[0] in b0 and b[1] in b1; the following function helps translate -}
+
+b(0) = b0
+b(1) = b1
+
+{- chan.thread.name.val means that thread read/wrote val to/from name.
+   Note: these are switched as I thought this is more convenient. -}
+channel read, write : ThreadId . VarName . Data
+
+{- The high level events for trying to enter, entering and leaving the critical section. -}
+channel try, enter, leave : ThreadId
+
+{- Process for the variable name with value val. -}
+Var(name, val) = write?thread!name?newVal -> Var(name, newVal) {- Either we write a new value -}
+                 [] read?thread!name!val -> Var(name, val)     {- or read the current one. -}
+
+{- Process for all the variables. -}
+Vars = Var(b0, 0) ||| Var(b1, 0) ||| (Var(turn, 0) |~| Var(turn, 1))
+
+{- The alphabet of the variables. -}
+AlphVars = {|read, write|}
+
+{- The specification of the system. -}
+Spec = enter?x -> leave!x -> Spec |~| STOP
+
+{- Me is the identity of this thread
+ other = 1-me is the identity of the other thread. -}
+
+{-    Program 1
+
+    (1)  b[me] := 1 ;              
+    (2)  while turn != me do              
+    (3)    while b[other]==1 do skip end ;
+    (4)    turn := me                    
+    (5)  end ;
+    (6)  enter critical region ;    
+         ...
+    (7)  leave critical region ;
+    (8)  b[me] := 0 -}
+
+{- Implements program 1. -}
+P1(me)  = write!me!b(me)!1 -> P12(me)
+
+P12(me) = read!me!turn?val ->
+          if val != me then P13(me)
+          else enter!me -> leave!me -> write!me!b(me)!0 -> P1(me)
+
+P13(me) = read!me!b(1 - me)?val ->
+          if val == 1 then P13(me)
+          else write!me!turn!me -> P12(me)
+
+{- The system with program 1. -}
+System1 = ((P1(0) ||| P1(1)) [|AlphVars|] Vars) \ AlphVars
+
+{- Checks whether the program follows the spec. -}
+assert Spec [T= System1
+
+{- It is not correct.
+   Thread 1 executes lines 1-3, thus exiting the second while loop.
+   Thread 0 executes lines 1-2, thus exiting the first while loop.
+   Thread 1 executes lines 4 and 2, thus exiting the first while loop.
+   Finally, thread 1 enters and then thread 0 enters. -}
+
+
+{-    Program 2
+
+    (1)  b[me] := 1 ; 
+    (2)  turn := other ;
+    (3)  while (b[other] == 1 and turn == other) do skip end ;
+    (4)  enter critical region ;
+         ...
+    (5)  leave critical region ;
+    (6)  b[me] := 0 -}
+
+{- Implements program 2. -}
+P2(me)  = write!me!b(me)!1 -> write!me!turn!(1 - me) -> P22(me)
+
+P22(me) = read!me!b(1 - me)?val1 -> read!me!turn?val2 ->
+          if val1 == 1 and val2 == 1 - me then P22(me)
+          else enter!me -> leave!me -> write!me!b(me)!0 -> P2(me)
+
+{- The system with program 2. -}
+System2 = ((P2(0) ||| P2(1)) [|AlphVars|] Vars) \ AlphVars
+
+{- Checks whether the program follows the spec. -}
+assert Spec [T= System2
+
+{- It does follow the spec. -}
+
+
+{- OPTIONAL -}
+
+
+{-    Peterson's Algorithm
+
+    (1)  b[me] := 1 
+    (2)  turn := other 
+    (3)  waitfor (b[other] == 0 or turn == me)
+    (4)  enter critical section 
+    (5)  leave critical section 
+    (6)  b[me] := 0 -}
+
+{- Implements Peterson's Algorithm. -}
+P3(me)  = write!me!b(me)!1 -> write!me!turn!(1 - me) -> P32(me)
+
+{- We model waitfor as a deterministic choice between
+   all valid alternatives. This way the process offers
+   both, so if at least one is avaliable it can proceed. -}
+P32(me) = read!me!b(1 - me)!0 -> P33(me)
+          [] read!me!turn!me -> P33(me)
+
+P33(me) = enter!me -> leave!me -> write!me!b(me)!0 -> P3(me)
+
+{- The system with Peterson's Algorithm. -}
+System3 = ((P3(0) ||| P3(1)) [|AlphVars|] Vars) \ AlphVars
+
+{- Checks whether the program follows the spec. -}
+assert Spec [T= System3
+
+{- It does follow the spec. -}
+
+
+{- The specification of the system with liveness property.
+   The spec is allowed to terminate only when there are no
+   waiting processes and no process in the critical section. -}
+
+{- X are the waiting processes. -}
+SpecL(X) = if X == {} then
+             (|~| x : ThreadId @ try!x -> SpecL({x})) |~| STOP
+           else if X != ThreadId then
+             (|~| x : diff(ThreadId, X) @ try!x -> SpecL(union(X, {x})))
+             |~| (|~| x : X @ enter!x -> SpecL'(X, x))
+           else
+             |~| x : X @ enter!x -> SpecL'(X, x)
+
+{- Process y is in the critical section and X\{y} are waiting. -}
+SpecL'(X, y) = if X != ThreadId then
+                 (|~| x : diff(ThreadId, X) @ try!x -> SpecL'(union(X, {x}), y))
+                 |~| leave!y -> SpecL(diff(X, {y}))
+               else
+                 leave!y -> SpecL(diff(X, {y}))
+
+
+{- Implements Peterson's Algorithm with trying. -}
+P3'(me)  = try!me -> write!me!b(me)!1 -> write!me!turn!(1 - me) -> P32'(me)
+
+P32'(me) = read!me!b(1 - me)!0 -> P33'(me)
+           [] read!me!turn!me -> P33'(me)
+
+P33'(me) = enter!me -> leave!me -> write!me!b(me)!0 -> P3'(me)
+
+{- The system with Peterson's Algorithm with trying. -}
+System3' = ((P3'(0) ||| P3'(1)) [|AlphVars|] Vars) \ AlphVars
+
+{- Checks whether the program follows the spec. -}
+assert SpecL({}) [FD= System3'
+
+
+{- Implements program 2 with trying. -}
+P2'(me)  = try!me -> write!me!b(me)!1 -> write!me!turn!(1 - me) -> P22'(me)
+
+P22'(me) = read!me!b(1 - me)?val1 -> read!me!turn?val2 ->
+           if val1 == 1 and val2 == 1 - me then P22'(me)
+           else enter!me -> leave!me -> write!me!b(me)!0 -> P2'(me)
+
+{- The system with program 2 with trying. -}
+System2' = ((P2'(0) ||| P2'(1)) [|AlphVars|] Vars) \ AlphVars
+
+{- Checks whether the program follows the spec. -}
+assert SpecL({}) [FD= System2'
+
+{- It does not follow the spec.
+   Thread 0 declartes it's trying and executes lines 1-2.
+   Thread 1 declartes it's trying and executes lines 1-2.
+   Then thread 1 gets stuck in the loop while thread 0 gets no CPU time. -}
+
+
+{- JUST FOR FUN -}
+
+
+{- The stronger liveness property says that the system shouldn
+   not allow an infinite sequence of events that don't include
+   enter.x after the event try.x has happened. We model this by
+   hiding the other thread's events between try.x and leave.x.
+   Then, if the result has no divergences, the stronger liveness
+   property is followed. We do the check for one thread at a time. -}
+
+channel try', enter', leave' : ThreadId
+
+System3''(x) = (System3'[[try <- try, try <- try',
+                        enter <- enter, enter <- enter',
+                        leave <- leave, leave <- leave']]
+              [|{|try, enter, leave, try', enter', leave'|}|] Reg(x))
+              \ {|try', enter', leave'|}
+
+AlphProc(x) = {try.x, enter.x, leave.x}
+AlphProc'(x) = {try'.x, enter'.x, leave'.x}
+
+Reg(x) = try.x -> Reg2(x) |~| (|~| e : AlphProc(1 - x) @ e -> Reg(x))
+Reg2(x) = enter.x -> Reg3(x) |~| (|~| e : AlphProc'(1 - x) @ e -> Reg2(x))
+Reg3(x) = leave.x -> Reg(x) |~| (|~| e : AlphProc'(1 - x) @ e -> Reg3(x))
+
+Sigma = {|read, write, try, enter, leave|}
+
+{- Checks whether the program follows the spec. -}
+assert CHAOS(Sigma) [FD= System3''(0)
+
+{- It does not follow the spec.
+   Thread 0 declares it's trying.
+   Thread 1 repeatedly runs in its entirity. 
+   Thread 0 never enters. -}
