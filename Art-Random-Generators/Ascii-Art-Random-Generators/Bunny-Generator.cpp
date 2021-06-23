@@ -349,8 +349,8 @@ int main()
             if (inc) p++;
             else p--;
             if (p==p_high || p==p_low) inc=!inc;
-            if (p>p_high) p==p_high;
-            if (p<p_low) p==p_low;
+            if (p>p_high) p=p_high;
+            if (p<p_low) p=p_low;
         }
         m[5]=emp;
         c[5]=cemp;
