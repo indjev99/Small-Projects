@@ -181,9 +181,9 @@ void fillRow()
     {
         if (m[0][i]==' ') continue;
         var=rand()%vars[m[0][i]].size();
-        if (m[0][i]==13) var=MBD[i];
+        if (m[0][i]==13) var=var/2*2+MBD[i];
         repl=vars[m[0][i]][var];
-        for (int j=0;j<repl.size();j++) {m[0][i+j]=repl[j];MBD[i+j]=var;}
+        for (int j=0;j<repl.size();j++) {m[0][i+j]=repl[j];MBD[i+j]=var%2;}
         i+=repl.size()-1;
     }
 }
@@ -223,10 +223,13 @@ void genVars()
 
     vars[5].push_back("('.')");
     vars[5].push_back("('+')");
+    vars[5].push_back("('-')");
     vars[5].push_back("(*.*)");
     vars[5].push_back("(*+*)");
+    vars[5].push_back("(*-*)");
     vars[5].push_back("(^.^)");
     vars[5].push_back("(^+^)");
+    vars[5].push_back("(^-^)");
     vars[5].push_back("(-.-)");
     vars[5].push_back("(o.o)");
     vars[5].push_back("(O.O)");
@@ -254,14 +257,20 @@ void genVars()
     vars[8].push_back("(='.')");
     vars[8].push_back("('+'=)");
     vars[8].push_back("(='+')");
+    vars[8].push_back("('-'=)");
+    vars[8].push_back("(='-')");
     vars[8].push_back("(*.*=)");
     vars[8].push_back("(=*.*)");
     vars[8].push_back("(*+*=)");
     vars[8].push_back("(=*+*)");
+    vars[8].push_back("(*-*=)");
+    vars[8].push_back("(=*-*)");
     vars[8].push_back("(^.^=)");
     vars[8].push_back("(=^.^)");
     vars[8].push_back("(^+^=)");
     vars[8].push_back("(=^+^)");
+    vars[8].push_back("(^-^=)");
+    vars[8].push_back("(=^-^)");
     vars[8].push_back("(-.-=)");
     vars[8].push_back("(=-.-)");
     vars[8].push_back("(o.o=)");
@@ -282,13 +291,24 @@ void genVars()
 
     vars[12].push_back("/ . .\\");
     vars[12].push_back("/. . \\");
+    vars[12].push_back("/ ' '\\");
+    vars[12].push_back("/' ' \\");
+    vars[12].push_back("/ * *\\");
+    vars[12].push_back("/* * \\");
+    vars[12].push_back("/ o o\\");
+    vars[12].push_back("/o o \\");
+    vars[12].push_back("/ O O\\");
+    vars[12].push_back("/O O \\");
+    vars[12].push_back("/ 0 0\\");
+    vars[12].push_back("/0 0 \\");
 
     vars[13].push_back("\\  ^ /");
     vars[13].push_back("\\ ^  /");
+    vars[13].push_back("\\  - /");
+    vars[13].push_back("\\ -  /");
 
     vars[14].push_back("/\"\\/\"\\");
 
-    vars[15].push_back("\\ /\\ /");
     vars[15].push_back("\\_/\\_/");
 
     colours.push_back(0+32-128);
