@@ -171,6 +171,7 @@ bool createBunny(int p)
         if (cc==13+32-128) ++pink;
         return 1;
     }
+    return 0;
 }
 void fillRow()
 {
