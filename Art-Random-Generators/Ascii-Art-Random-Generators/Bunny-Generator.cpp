@@ -111,7 +111,7 @@ bool createBunny(int p)
     {
         if (checkForSmallB(p)==0)
         {
-            if (rand()%vars[1].size()>=vars[1].size()) return 0;
+            if (rand()%vars[1].size()>=vars[101].size()) return 0;
             else
             {
                 if (checkForSmallBSpecial(p)==0) return 0;
