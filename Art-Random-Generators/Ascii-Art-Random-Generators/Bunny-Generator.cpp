@@ -11,7 +11,7 @@ string MBD;
 int w;
 vector<string> vars[256];
 vector<int> colours,scolours;
-int pink=0,yellow=0,white=0,black=0,light_gray=0,dark_gray=0;
+int cnt_small=0,cnt_mid=0,cnt_big=0,cnt_mega=0,cnt_white=0,cnt_light_gray=0,cnt_dark_gray=0,cnt_black=0,cnt_pink=0,cnt_yellow=0;
 bool checkForSmallB(int p)
 {
     for (int i=0;i<4;i++) if (m[0][p+i]!=' ') return 0;
@@ -119,15 +119,9 @@ bool createBunny(int p)
             }
         }
         else createSmallB(p,cc);
-        if (cc==0+32-128) ++black;
-        if (cc==7+32-128) ++light_gray;
-        if (cc==8+32-128) ++dark_gray;
-        if (cc==15+32-128) ++white;
-        if (cc==14+32-128) ++yellow;
-        if (cc==13+32-128) ++pink;
-        return 1;
+        ++cnt_small;
     }
-    if (t==1)
+    else if (t==1)
     {
         if (checkForMidB(p)==0)
         {
@@ -139,39 +133,27 @@ bool createBunny(int p)
             }
         }
         else createMidB(p,cc);
-        if (cc==0+32-128) ++black;
-        if (cc==7+32-128) ++light_gray;
-        if (cc==8+32-128) ++dark_gray;
-        if (cc==15+32-128) ++white;
-        if (cc==14+32-128) ++yellow;
-        if (cc==13+32-128) ++pink;
-        return 1;
+        ++cnt_mid;
     }
-    if (t==2)
+    else if (t==2)
     {
         if (checkForBigB(p)==0) return 0;
         createBigB(p,cc);
-        if (cc==0+32-128) ++black;
-        if (cc==7+32-128) ++light_gray;
-        if (cc==8+32-128) ++dark_gray;
-        if (cc==15+32-128) ++white;
-        if (cc==14+32-128) ++yellow;
-        if (cc==13+32-128) ++pink;
-        return 1;
+        ++cnt_big;
     }
-    if (t==3)
+    else if (t==3)
     {
         if (checkForMegaB(p)==0) return 0;
         createMegaB(p,cc);
-        if (cc==0+32-128) ++black;
-        if (cc==7+32-128) ++light_gray;
-        if (cc==8+32-128) ++dark_gray;
-        if (cc==15+32-128) ++white;
-        if (cc==14+32-128) ++yellow;
-        if (cc==13+32-128) ++pink;
-        return 1;
+        ++cnt_mega;
     }
-    return 0;
+    if (cc==15+32-128) ++cnt_white;
+    if (cc==7+32-128) ++cnt_light_gray;
+    if (cc==8+32-128) ++cnt_dark_gray;
+    if (cc==0+32-128) ++cnt_black;
+    if (cc==13+32-128) ++cnt_pink;
+    if (cc==14+32-128) ++cnt_yellow;
+    return 1;
 }
 void fillRow()
 {
@@ -421,7 +403,8 @@ int main()
     }
     SetConsoleTextAttribute(hConsole,15);
     getch();
-    cout<<"\n\nWhite: "<<white<<"\nLight Gray: "<<light_gray<<"\nDark Gray: "<<dark_gray<<"\nBlack: "<<black<<"\nPink: "<<pink<<"\nYellow: "<<yellow<<'\n';
+    cout<<"\n\nSmall: "<<cnt_white<<"\nMid: "<<cnt_light_gray<<"\nBig: "<<cnt_dark_gray<<"\nMega: "<<cnt_mega;
+    cout<<"\nWhite: "<<cnt_white<<"\nLight Gray: "<<cnt_light_gray<<"\nDark Gray: "<<cnt_dark_gray<<"\nBlack: "<<cnt_black<<"\nPink: "<<cnt_pink<<"\nYellow: "<<cnt_yellow<<'\n';
     getch();
     return 0;
 }
