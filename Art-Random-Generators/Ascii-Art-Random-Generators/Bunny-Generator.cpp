@@ -403,7 +403,8 @@ int main()
     }
     SetConsoleTextAttribute(hConsole,15);
     getch();
-    cout<<"\n\nSmall: "<<cnt_white<<"\nMid: "<<cnt_light_gray<<"\nBig: "<<cnt_dark_gray<<"\nMega: "<<cnt_mega;
+    cout<<"\n\nTotal: "<<cnt_white+cnt_mid+cnt_big+cnt_mega;
+    cout<<"\nSmall: "<<cnt_small<<"\nMid: "<<cnt_mid<<"\nBig: "<<cnt_big<<"\nMega: "<<cnt_mega;
     cout<<"\nWhite: "<<cnt_white<<"\nLight Gray: "<<cnt_light_gray<<"\nDark Gray: "<<cnt_dark_gray<<"\nBlack: "<<cnt_black<<"\nPink: "<<cnt_pink<<"\nYellow: "<<cnt_yellow<<'\n';
     getch();
     return 0;
