@@ -250,7 +250,7 @@ function initialise_scene() {
   geometry = new THREE.SphereGeometry(6, 1024, 1024);
   material = new THREE.MeshPhongMaterial({ color: 0xff7f7f });
   sphere = new THREE.Mesh(geometry, material);
-  sphere.position.set(-35, -15, -50);
+  sphere.position.set(-35, -15, -35);
   scene.add(sphere);
 
   geometry = new THREE.SphereGeometry(3, 1024, 1024);
