@@ -1,24 +1,103 @@
 
-// Add any resources you want to load here
-// You will then be able to reference them in initialise_scene
-// e.g. as "resources.vert_shader"
-RESOURCES = [
-  // format is:
-  // ["name", "path-to-resource"]
-  ["empty_vert_shader", "http://localhost:8000/shaders/empty.vert"],
-  ["vert_shader", "http://localhost:8000/shaders/default.vert"],
-  ["extended_vert_shader", "http://localhost:8000/shaders/extended.vert"],
-  ["empty_frag_shader", "http://localhost:8000/shaders/empty.frag"],
-  ["frag_shader", "http://localhost:8000/shaders/default.frag"],
-  ["lighting_frag_shader", "http://localhost:8000/shaders/lighting.frag"],
-  ["toon_frag_shader", "http://localhost:8000/shaders/toon.frag"],
-  ["reflective_frag_shader", "http://localhost:8000/shaders/reflective.frag"]
-]
+resources = {
+  "vert_shader" :
+    `
+    varying vec3 world_normal;
+    varying vec3 world_position;
+
+    void main() {
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+
+      world_normal = normalize(mat3(modelMatrix) * normal);
+      world_position = (modelMatrix * vec4(position, 1.0)).xyz;
+    }
+    `
+  ,
+  "flat_frag_shader" :
+    `
+    uniform vec3 color;
+    varying vec3 world_normal;
+
+    void main() {
+      gl_FragColor = vec4(color, 1.0);
+    }
+    `
+  ,
+  "lighting_frag_shader" :
+    `
+    uniform vec3 light_dir;
+    uniform float ambient_light;
+    uniform vec3 color;
+    varying vec3 world_normal;
+
+    void main() {
+      vec3 world_normal_n = normalize(world_normal);
+      vec3 light_dir_n = normalize(light_dir);
+      float light = dot(world_normal_n, light_dir_n);
+      light = min(max(light, 0.0) + ambient_light, 1.0);
+      gl_FragColor = vec4(light * color, 1.0);
+    }
+    `
+  ,
+  "toon_frag_shader" :
+    `
+    uniform vec3 light_dir;
+    uniform float ambient_light;
+    uniform vec3 color;
+    uniform float color_res;
+    varying vec3 world_normal;
+
+    void main() {
+      vec3 world_normal_n = normalize(world_normal);
+      vec3 light_dir_n = normalize(light_dir);
+      float light = dot(world_normal_n, light_dir_n);
+      light = min(max(light, 0.0) + ambient_light, 1.0);
+      gl_FragColor = vec4(light * color, 1.0);
+      gl_FragColor[0] = round(gl_FragColor[0] * color_res) / color_res;
+      gl_FragColor[1] = round(gl_FragColor[1] * color_res) / color_res;
+      gl_FragColor[2] = round(gl_FragColor[2] * color_res) / color_res;
+    }
+    `
+  ,
+  "reflective_frag_shader" :
+    `
+    uniform vec3 light_dir;
+    uniform float ambient_light;
+    uniform vec3 camera_position;
+    uniform vec3 color;
+    uniform float diffusion;
+    uniform float reflection;
+    varying vec3 world_normal;
+    varying vec3 world_position;
+
+    void main() {
+      vec3 world_normal_n = normalize(world_normal);
+      vec3 light_dir_n = normalize(light_dir);
+      vec3 out_light_dir = reflect(light_dir_n, world_normal_n);
+      vec3 view_dir = normalize(world_position - camera_position);
+
+      float light_diff = dot(light_dir_n, world_normal_n);
+      float light_refl = dot(out_light_dir, view_dir);
+
+      if (light_diff < 0.0) {
+          light_refl = 0.0;
+      }
+
+      light_diff = max(light_diff, 0.0);
+      light_refl = max(light_refl, 0.0);
+
+      float light = min(ambient_light + light_diff * diffusion, 1.0);
+      light = min(light + light_refl * reflection, 1.0 + reflection);
+
+      gl_FragColor = vec4(light * color, 1.0);
+    }
+    `
+}
 
 
 /* Create the scene */
 
-function initialise_scene(resources) {
+function initialise_scene() {
   // You can use your loaded resources here; resources.vert_shader will
   // be the content of the vert_shader file listed in RESOURCES, for
   // example
@@ -47,22 +126,15 @@ function initialise_scene(resources) {
   controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.update();
 
-  // Objects
+  // Materials
 
-  function emptyShader() {
-    return new THREE.ShaderMaterial({
-      vertexShader: resources["empty_vert_shader"],
-      fragmentShader: resources["empty_frag_shader"]
-    });
-  };
-
-  function defaultShader(r, g, b) {
+  function flatMaterial(r, g, b) {
     return new THREE.ShaderMaterial({
       uniforms: {
         color: {value: new THREE.Vector3(r, g, b)}
       },
       vertexShader: resources["vert_shader"],
-      fragmentShader: resources["frag_shader"]
+      fragmentShader: resources["flat_frag_shader"]
     });
   };
 
@@ -101,10 +173,12 @@ function initialise_scene(resources) {
         diffusion: {value: diff},
         reflection: {value: refl}
       },
-      vertexShader: resources["extended_vert_shader"],
+      vertexShader: resources["vert_shader"],
       fragmentShader: resources["reflective_frag_shader"]
     });
   };
+
+  // Objects
 
   geometry = new THREE.BoxGeometry(4, 4, 4);
   material = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -206,29 +280,4 @@ function initialise_scene(resources) {
 }
 
 
-/*  Asynchronously load resources
-
-    You shouldn't need to change this - you can add
-    more resources by changing RESOURCES above */
-
-function load_resources() {
-  var promises = []
-
-  for(let r of RESOURCES) {
-    promises.push(fetch(r[1], {
-      mode: 'no-cors'
-    })
-    .then(res => res.text()))
-  }
-
-  return Promise.all(promises).then(function(res) {
-    let resources = {}
-    for(let i in RESOURCES) {
-      resources[RESOURCES[i][0]] = res[i]
-    }
-    return resources
-  })
-}
-
-// Load the resources and then create the scene when resources are loaded
-load_resources().then(res => initialise_scene(res))
+initialise_scene()
