@@ -1,6 +1,6 @@
 
 resources = {
-  "vert_shader" :
+  vert_shader :
     `
     varying vec3 world_normal;
     varying vec3 world_position;
@@ -13,7 +13,7 @@ resources = {
     }
     `
   ,
-  "flat_frag_shader" :
+  flat_frag_shader :
     `
     uniform vec3 color;
     varying vec3 world_normal;
@@ -23,7 +23,7 @@ resources = {
     }
     `
   ,
-  "lighting_frag_shader" :
+  lighting_frag_shader :
     `
     uniform vec3 light_dir;
     uniform float ambient_light;
@@ -39,7 +39,7 @@ resources = {
     }
     `
   ,
-  "toon_frag_shader" :
+  toon_frag_shader :
     `
     uniform vec3 light_dir;
     uniform float ambient_light;
@@ -59,7 +59,7 @@ resources = {
     }
     `
   ,
-  "reflective_frag_shader" :
+  reflective_frag_shader :
     `
     uniform vec3 light_dir;
     uniform float ambient_light;
@@ -90,6 +90,45 @@ resources = {
       light = min(light + light_refl * reflection, 1.0 + reflection);
 
       gl_FragColor = vec4(light * color, 1.0);
+    }
+    `
+  ,
+  reflective_toon_frag_shader :
+    `
+    uniform vec3 light_dir;
+    uniform float ambient_light;
+    uniform vec3 camera_position;
+    uniform vec3 color;
+    uniform float diffusion;
+    uniform float reflection;
+    uniform float color_res;
+    varying vec3 world_normal;
+    varying vec3 world_position;
+
+    void main() {
+      vec3 world_normal_n = normalize(world_normal);
+      vec3 light_dir_n = normalize(light_dir);
+      vec3 out_light_dir = reflect(light_dir_n, world_normal_n);
+      vec3 view_dir = normalize(world_position - camera_position);
+
+      float light_diff = dot(light_dir_n, world_normal_n);
+      float light_refl = dot(out_light_dir, view_dir);
+
+      if (light_diff < 0.0) {
+          light_refl = 0.0;
+      }
+
+      light_diff = max(light_diff, 0.0);
+      light_refl = max(light_refl, 0.0);
+
+      float light = min(ambient_light + light_diff * diffusion, 1.0);
+      light = min(light + light_refl * reflection, 1.0 + reflection);
+
+      gl_FragColor = vec4(light * color, 1.0);
+
+      gl_FragColor[0] = round(gl_FragColor[0] * color_res) / color_res;
+      gl_FragColor[1] = round(gl_FragColor[1] * color_res) / color_res;
+      gl_FragColor[2] = round(gl_FragColor[2] * color_res) / color_res;
     }
     `
 }
@@ -178,6 +217,22 @@ function initialise_scene() {
     });
   };
 
+  function reflectiveToonMaterial(r, g, b, diff, refl, res) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        light_dir: {value: new THREE.Vector3(1, 1, 1)},
+        ambient_light: {value: 0.2},
+        camera_position: {value: camera.position},
+        color: {value: new THREE.Vector3(r, g, b)},
+        diffusion: {value: diff},
+        reflection: {value: refl},
+        color_res: {value: res}
+      },
+      vertexShader: resources["vert_shader"],
+      fragmentShader: resources["reflective_toon_frag_shader"]
+    });
+  };
+
   // Objects
 
   geometry = new THREE.BoxGeometry(4, 4, 4);
@@ -205,19 +260,19 @@ function initialise_scene() {
   scene.add(r_sphere);
 
   geometry = new THREE.TorusGeometry(8, 0.75, 1024, 1024);
-  material = toonMaterial(1.0, 0.0, 0.0, 2.0);
+  material = reflectiveToonMaterial(1.0, 0.0, 0.0, 0.7, 0.3, 2.0);
   ring1 = new THREE.Mesh(geometry, material);
   ring1.position.set(15, -15, -10);
   scene.add(ring1);
 
   geometry = new THREE.TorusGeometry(5, 0.75, 1024, 1024);
-  material = toonMaterial(0.0, 1.0, 0.0, 3.0);
+  material = reflectiveToonMaterial(0.0, 1.0, 0.0, 0.7, 0.3, 3.0);
   ring2 = new THREE.Mesh(geometry, material);
   ring2.position.set(15, -15, -10);
   scene.add(ring2);
 
   geometry = new THREE.TorusGeometry(2, 0.75, 1024, 1024);
-  material = toonMaterial(0.0, 0.0, 1.0, 4.0);
+  material = reflectiveToonMaterial(0.0, 0.0, 1.0, 0.7, 0.3, 4.0);
   ring3 = new THREE.Mesh(geometry, material);
   ring3.position.set(15, -15, -10);
   scene.add(ring3);
@@ -228,6 +283,13 @@ function initialise_scene() {
   torusKnot = new THREE.Mesh(geometry, material);
   torusKnot.position.set(0, 10, 0);
   scene.add(torusKnot);
+
+  geometry = new THREE.TorusKnotGeometry(4, 0.65, 1024, 1024);
+  material = reflectiveToonMaterial(0.55, 0.25, 1.0, 0.4, 0.6, 3.0);
+  material.clearcoat = 1.0;
+  torusKnot2 = new THREE.Mesh(geometry, material);
+  torusKnot2.position.set(-10, -8, -5);
+  scene.add(torusKnot2);
 
   geometry = new THREE.BoxGeometry(3.5, 2, 5);
   material = reflectiveMaterial(0.1, 0.9, 0.8, 0.9, 0.1);
@@ -263,6 +325,10 @@ function initialise_scene() {
     torusKnot.rotation.x -= -0.00061;
     torusKnot.rotation.y += -0.001;
     torusKnot.rotation.z += -0.003;
+
+    torusKnot2.rotation.x -= +0.001;
+    torusKnot2.rotation.y += -0.005;
+    torusKnot2.rotation.z += +0.01;
 
     ring1.rotation.x += 0.015
 
