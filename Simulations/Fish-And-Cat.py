@@ -1,5 +1,6 @@
 import math
 import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
 
 EPS = 1e-5
 DEF_MAX_T = 2
@@ -41,7 +42,11 @@ def cat_strat(v, fx, fy, ca):
     else:
         return v * abs(diff) / diff
 
-def play(fish_strat, v, max_t = DEF_MAX_T):
+def play(fish_strat, v=None, max_t=DEF_MAX_T):
+    if v is None:
+        v = find_max_v(fish_strat)
+        print('Max V:', v)
+
     def get_dfxy(fx, fy, ca):
         return normalize(*fish_strat(v, fx, fy, ca), only_shrink=True)
     def get_ca(fx, fy, ca):
@@ -73,7 +78,7 @@ def play(fish_strat, v, max_t = DEF_MAX_T):
         t = t + dt
     return succ, fish_xys, cat_xys
 
-def find_max_v(fish_strat, max_t = DEF_MAX_T):
+def find_max_v(fish_strat, max_t=DEF_MAX_T):
     left = 0
     right = 20
     while right - left > EPS:
@@ -85,22 +90,38 @@ def find_max_v(fish_strat, max_t = DEF_MAX_T):
             right = mid
     return left
 
-def plot(fish_strat, v, max_t = DEF_MAX_T):
-    succ, fish_xys, cat_xys = play(fish_strat, v, max_t)
-    print('Time:', (len(fish_xys) - 1) * dt)
-    print('Escaped:', succ)
-    
-    plt.axis('square')
-    plt.xlim((-1.1, 1.1))
-    plt.ylim((-1.1, 1.1))
-    plt.plot(*zip(*fish_xys), label='fish')
-    plt.plot(*zip(*cat_xys), label='cat')
-    plt.show()
+def animate(succ, fish_xys, cat_xys, speed=0.2):
+    steps = len(fish_xys)
 
-def plot_max_v(fish_strat, max_t = DEF_MAX_T):
-    max_v = find_max_v(fish_strat, max_t)
-    print('Max V:', max_v)
-    plot(fish_strat, max_v, max_t)
+    print('Time:', (steps - 1) * dt)
+    print('Escaped:', succ)
+
+    fig, ax = plt.subplots(1, 1)
+    ax.set_aspect('equal')
+    ax.set_xlim((-1.1, 1.1))
+    ax.set_ylim((-1.1, 1.1))
+
+    fps = 30
+    sim_secs_per_sec = speed
+
+    steps_per_frame = max(round(sim_secs_per_sec / fps / dt), 1)
+    msec_per_frame = steps_per_frame * dt / sim_secs_per_sec / fps * 1000
+
+    frames = (steps + steps_per_frame - 1) // steps_per_frame
+
+    def draw_frame(frame):
+        next_step = min((frame + 1) * steps_per_frame, len(fish_xys))
+        ax.clear()
+        ax.set_aspect('equal')
+        ax.set_xlim((-1.1, 1.1))
+        ax.set_ylim((-1.1, 1.1))
+        ax.plot(*zip(*fish_xys[ : next_step]), color='blue', label='fish')
+        ax.plot(*fish_xys[next_step - 1], color='blue', label='fish_curr', marker='o')
+        ax.plot(*zip(*cat_xys[ : next_step]), color='orange', label='cat')
+        ax.plot(*cat_xys[next_step - 1], color='orange', label='cat_curr', marker='o')
+
+    ani = FuncAnimation(fig, draw_frame, frames=frames, interval=msec_per_frame, repeat=False)
+    plt.show()
 
 def get_fa(fx, fy, ca):
     cx, cy = get_xy(ca)
@@ -120,7 +141,6 @@ def fish_opposite(v, fx, fy, ca):
     fa = get_fa(fx, fy, ca)
     left = fa - math.pi / 2
     right = fa + math.pi / 2
-    # print(fx, fy, fa, '/', ca)
     while right - left > EPS:
         mid1 = (2 * left + right) / 3
         mid2 = (left + 2 * right) / 3
@@ -132,9 +152,6 @@ def fish_opposite(v, fx, fy, ca):
         fa2 = get_a(fx2, fy2)
         diff1 = angle_diff(fa1, ca)
         diff2 = angle_diff(fa2, ca)
-        # print()
-        # print('  ', mid1, dfx1, dfy1, '->', fx1, fy1, fa1, '->', diff1)
-        # print('  ', mid2, dfx2, dfy2, '->', fx2, fy2, fa2, '->', diff2)
         if abs(diff1) > abs(diff2):
             right = mid2
         else:
@@ -166,17 +183,40 @@ def fish_greedy(v, fx, fy, ca):
             left = mid1
     return get_xy((left + right) / 2)
 
-def fish_oppdash(v, fx, fy, ca):
+def fish_opposite_dash(v, fx, fy, ca):
     if v < EPS or get_norm(fx, fy) < 1 / v:
         return fish_opposite(v, fx, fy, ca)
     else:
         return fish_dash(v, fx, fy, ca)
 
-def fish_oppgreedy(v, fx, fy, ca):
+def fish_opposite_greedy(v, fx, fy, ca):
     if v < EPS or get_norm(fx, fy) < 1 / v:
         return fish_opposite(v, fx, fy, ca)
     else:
         return fish_greedy(v, fx, fy, ca)
 
-# plot_max_v(fish_oppgreedy)
-plot(fish_oppgreedy, v=4.1415)
+fishes = [
+    ('fish_runaway', fish_runaway),
+    ('fish_dash', fish_dash),
+    ('fish_opposite', fish_opposite),
+    ('fish_greedy', fish_greedy),
+    ('fish_opposite_dash', fish_opposite_dash),
+    ('fish_opposite_greedy', fish_opposite_greedy)
+]
+
+def main():
+    print('Select fish: ')
+    for i, (name, strat) in enumerate(fishes):
+        print(i, name)
+    sel = int(input())
+    fish_strat = fishes[sel][1]
+    print('Enter cat speed (`max` for max winnable):')
+    v = input()
+    if v == 'max':
+        v = None
+    else:
+        v = float(v)
+    animate(*play(fish_strat, v))
+
+if __name__ == '__main__':
+    main()
