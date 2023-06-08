@@ -63,7 +63,7 @@ double findB(double max_speed, double a)
 {
     return -max_speed*a;
 }
-Human &findAB(double time, double dist, double mass, double max_speed, double wind)
+Human findAB(double time, double dist, double mass, double max_speed, double wind)
 {
     Human human;
     human.mass=mass;
